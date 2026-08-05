@@ -108,7 +108,7 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	asgSuspendProcess := types.ListNull(types.StringType)
 	if len(in.ASGSuspendProcesses) > 0 {
 		aspElements := []attr.Value{}
-		for _, asp := range in.ASGSuspendProcesses {
+		for _, asp := range flattenStringListWithStateOrder(in.ASGSuspendProcesses, state.AsgSuspendProcesses) {
 			aspElements = append(aspElements, types.StringValue(asp))
 		}
 		asgSuspendProcess, d = types.ListValue(types.StringType, aspElements)

@@ -2231,12 +2231,14 @@ func (v *SystemComponentsPlacementValue) Flatten(ctx context.Context, in *rafay.
 	}
 	v.Tolerations = tolerations
 
-	dsoList := make([]DaemonsetOverrideValue, len(state.DaemonsetOverride.Elements()))
-	d = state.DaemonsetOverride.ElementsAs(ctx, &dsoList, false)
-	diags = append(diags, d...)
 	stDso := DaemonsetOverrideValue{}
-	if len(dsoList) > 0 {
-		stDso = dsoList[0]
+	if !state.DaemonsetOverride.IsNull() && !state.DaemonsetOverride.IsUnknown() && state.DaemonsetOverride.ElementType(ctx) != nil {
+		dsoList := make([]DaemonsetOverrideValue, 0, len(state.DaemonsetOverride.Elements()))
+		d = state.DaemonsetOverride.ElementsAs(ctx, &dsoList, false)
+		diags = append(diags, d...)
+		if len(dsoList) > 0 {
+			stDso = dsoList[0]
+		}
 	}
 
 	// DaemonsetOverride

@@ -339,6 +339,12 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 										},
 										Optional: true,
 									},
+									"nameservers": schema.MapAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "cluster nameservers",
+										MarkdownDescription: "cluster nameservers",
+									},
 									"pod_subnet": schema.StringAttribute{
 										Required:            true,
 										Description:         "Kubernetes pod subnet",
@@ -486,6 +492,29 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Required:            true,
 								Description:         "holds node configuration for the cluster",
 								MarkdownDescription: "holds node configuration for the cluster",
+							},
+							"oidc_configuration": schema.SingleNestedAttribute{
+								Attributes: map[string]schema.Attribute{
+									"api_audiences": schema.SetAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "API audiences for OIDC",
+										MarkdownDescription: "API audiences for OIDC",
+									},
+									"service_account_issuer": schema.StringAttribute{
+										Optional:            true,
+										Description:         "Service account issuer URL for OIDC",
+										MarkdownDescription: "Service account issuer URL for OIDC",
+									},
+								},
+								CustomType: OidcConfigurationType{
+									ObjectType: types.ObjectType{
+										AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
+									},
+								},
+								Optional:            true,
+								Description:         "OIDC configuration for MKS cluster",
+								MarkdownDescription: "OIDC configuration for MKS cluster",
 							},
 							"platform_version": schema.StringAttribute{
 								Optional:            true,
@@ -2705,6 +2734,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`nodes expected to be basetypes.MapValue, was: %T`, nodesAttribute))
 	}
 
+	oidcConfigurationAttribute, ok := attributes["oidc_configuration"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`oidc_configuration is missing from object`)
+
+		return nil, diags
+	}
+
+	oidcConfigurationVal, ok := oidcConfigurationAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`oidc_configuration expected to be basetypes.ObjectValue, was: %T`, oidcConfigurationAttribute))
+	}
+
 	platformVersionAttribute, ok := attributes["platform_version"]
 
 	if !ok {
@@ -2741,6 +2788,7 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 		Location:                      locationVal,
 		Network:                       networkVal,
 		Nodes:                         nodesVal,
+		OidcConfiguration:             oidcConfigurationVal,
 		PlatformVersion:               platformVersionVal,
 		state:                         attr.ValueStateKnown,
 	}, diags
@@ -3043,6 +3091,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`nodes expected to be basetypes.MapValue, was: %T`, nodesAttribute))
 	}
 
+	oidcConfigurationAttribute, ok := attributes["oidc_configuration"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`oidc_configuration is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	oidcConfigurationVal, ok := oidcConfigurationAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`oidc_configuration expected to be basetypes.ObjectValue, was: %T`, oidcConfigurationAttribute))
+	}
+
 	platformVersionAttribute, ok := attributes["platform_version"]
 
 	if !ok {
@@ -3079,6 +3145,7 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 		Location:                      locationVal,
 		Network:                       networkVal,
 		Nodes:                         nodesVal,
+		OidcConfiguration:             oidcConfigurationVal,
 		PlatformVersion:               platformVersionVal,
 		state:                         attr.ValueStateKnown,
 	}, diags
@@ -3165,12 +3232,13 @@ type ConfigValue struct {
 	Location                      basetypes.StringValue `tfsdk:"location"`
 	Network                       basetypes.ObjectValue `tfsdk:"network"`
 	Nodes                         basetypes.MapValue    `tfsdk:"nodes"`
+	OidcConfiguration             basetypes.ObjectValue `tfsdk:"oidc_configuration"`
 	PlatformVersion               basetypes.StringValue `tfsdk:"platform_version"`
 	state                         attr.ValueState
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 14)
+	attrTypes := make(map[string]tftypes.Type, 15)
 
 	var val tftypes.Value
 	var err error
@@ -3200,13 +3268,16 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["nodes"] = basetypes.MapType{
 		ElemType: NodesValue{}.Type(ctx),
 	}.TerraformType(ctx)
+	attrTypes["oidc_configuration"] = basetypes.ObjectType{
+		AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
 	attrTypes["platform_version"] = basetypes.StringType{}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 14)
+		vals := make(map[string]tftypes.Value, 15)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -3311,6 +3382,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["nodes"] = val
+
+		val, err = v.OidcConfiguration.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["oidc_configuration"] = val
 
 		val, err = v.PlatformVersion.ToTerraformValue(ctx)
 
@@ -3462,6 +3541,27 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		)
 	}
 
+	var oidcConfiguration basetypes.ObjectValue
+
+	if v.OidcConfiguration.IsNull() {
+		oidcConfiguration = types.ObjectNull(
+			OidcConfigurationValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.OidcConfiguration.IsUnknown() {
+		oidcConfiguration = types.ObjectUnknown(
+			OidcConfigurationValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.OidcConfiguration.IsNull() && !v.OidcConfiguration.IsUnknown() {
+		oidcConfiguration = types.ObjectValueMust(
+			OidcConfigurationValue{}.AttributeTypes(ctx),
+			v.OidcConfiguration.Attributes(),
+		)
+	}
+
 	var kubeletExtraArgsVal basetypes.MapValue
 	switch {
 	case v.KubeletExtraArgs.IsUnknown():
@@ -3501,6 +3601,9 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"nodes": basetypes.MapType{
 				ElemType: NodesValue{}.Type(ctx),
 			},
+			"oidc_configuration": basetypes.ObjectType{
+				AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
+			},
 			"platform_version": basetypes.StringType{},
 		}), diags
 	}
@@ -3531,6 +3634,9 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"nodes": basetypes.MapType{
 			ElemType: NodesValue{}.Type(ctx),
 		},
+		"oidc_configuration": basetypes.ObjectType{
+			AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
+		},
 		"platform_version": basetypes.StringType{},
 	}
 
@@ -3558,6 +3664,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"location":                        v.Location,
 			"network":                         network,
 			"nodes":                           nodes,
+			"oidc_configuration":              oidcConfiguration,
 			"platform_version":                v.PlatformVersion,
 		})
 
@@ -3631,6 +3738,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.OidcConfiguration.Equal(other.OidcConfiguration) {
+		return false
+	}
+
 	if !v.PlatformVersion.Equal(other.PlatformVersion) {
 		return false
 	}
@@ -3672,6 +3783,9 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"nodes": basetypes.MapType{
 			ElemType: NodesValue{}.Type(ctx),
+		},
+		"oidc_configuration": basetypes.ObjectType{
+			AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
 		},
 		"platform_version": basetypes.StringType{},
 	}
@@ -6858,6 +6972,24 @@ func (t NetworkType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 			fmt.Sprintf(`ipv6 expected to be basetypes.ObjectValue, was: %T`, ipv6Attribute))
 	}
 
+	nameserversAttribute, ok := attributes["nameservers"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`nameservers is missing from object`)
+
+		return nil, diags
+	}
+
+	nameserversVal, ok := nameserversAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`nameservers expected to be basetypes.MapValue, was: %T`, nameserversAttribute))
+	}
+
 	podSubnetAttribute, ok := attributes["pod_subnet"]
 
 	if !ok {
@@ -6901,6 +7033,7 @@ func (t NetworkType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 	return NetworkValue{
 		Cni:           cniVal,
 		Ipv6:          ipv6Val,
+		Nameservers:   nameserversVal,
 		PodSubnet:     podSubnetVal,
 		ServiceSubnet: serviceSubnetVal,
 		state:         attr.ValueStateKnown,
@@ -7006,6 +7139,24 @@ func NewNetworkValue(attributeTypes map[string]attr.Type, attributes map[string]
 			fmt.Sprintf(`ipv6 expected to be basetypes.ObjectValue, was: %T`, ipv6Attribute))
 	}
 
+	nameserversAttribute, ok := attributes["nameservers"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`nameservers is missing from object`)
+
+		return NewNetworkValueUnknown(), diags
+	}
+
+	nameserversVal, ok := nameserversAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`nameservers expected to be basetypes.MapValue, was: %T`, nameserversAttribute))
+	}
+
 	podSubnetAttribute, ok := attributes["pod_subnet"]
 
 	if !ok {
@@ -7049,6 +7200,7 @@ func NewNetworkValue(attributeTypes map[string]attr.Type, attributes map[string]
 	return NetworkValue{
 		Cni:           cniVal,
 		Ipv6:          ipv6Val,
+		Nameservers:   nameserversVal,
 		PodSubnet:     podSubnetVal,
 		ServiceSubnet: serviceSubnetVal,
 		state:         attr.ValueStateKnown,
@@ -7125,13 +7277,14 @@ var _ basetypes.ObjectValuable = NetworkValue{}
 type NetworkValue struct {
 	Cni           basetypes.ObjectValue `tfsdk:"cni"`
 	Ipv6          basetypes.ObjectValue `tfsdk:"ipv6"`
+	Nameservers   basetypes.MapValue    `tfsdk:"nameservers"`
 	PodSubnet     basetypes.StringValue `tfsdk:"pod_subnet"`
 	ServiceSubnet basetypes.StringValue `tfsdk:"service_subnet"`
 	state         attr.ValueState
 }
 
 func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 4)
+	attrTypes := make(map[string]tftypes.Type, 5)
 
 	var val tftypes.Value
 	var err error
@@ -7142,6 +7295,9 @@ func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	attrTypes["ipv6"] = basetypes.ObjectType{
 		AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
+	attrTypes["nameservers"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["pod_subnet"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["service_subnet"] = basetypes.StringType{}.TerraformType(ctx)
 
@@ -7149,7 +7305,7 @@ func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 4)
+		vals := make(map[string]tftypes.Value, 5)
 
 		val, err = v.Cni.ToTerraformValue(ctx)
 
@@ -7166,6 +7322,14 @@ func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 		}
 
 		vals["ipv6"] = val
+
+		val, err = v.Nameservers.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["nameservers"] = val
 
 		val, err = v.PodSubnet.ToTerraformValue(ctx)
 
@@ -7254,12 +7418,43 @@ func (v NetworkValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		)
 	}
 
+	var nameserversVal basetypes.MapValue
+	switch {
+	case v.Nameservers.IsUnknown():
+		nameserversVal = types.MapUnknown(types.StringType)
+	case v.Nameservers.IsNull():
+		nameserversVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		nameserversVal, d = types.MapValue(types.StringType, v.Nameservers.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"cni": basetypes.ObjectType{
+				AttrTypes: CniValue{}.AttributeTypes(ctx),
+			},
+			"ipv6": basetypes.ObjectType{
+				AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
+			},
+			"nameservers": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"pod_subnet":     basetypes.StringType{},
+			"service_subnet": basetypes.StringType{},
+		}), diags
+	}
+
 	attributeTypes := map[string]attr.Type{
 		"cni": basetypes.ObjectType{
 			AttrTypes: CniValue{}.AttributeTypes(ctx),
 		},
 		"ipv6": basetypes.ObjectType{
 			AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
+		},
+		"nameservers": basetypes.MapType{
+			ElemType: types.StringType,
 		},
 		"pod_subnet":     basetypes.StringType{},
 		"service_subnet": basetypes.StringType{},
@@ -7278,6 +7473,7 @@ func (v NetworkValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		map[string]attr.Value{
 			"cni":            cni,
 			"ipv6":           ipv6,
+			"nameservers":    nameserversVal,
 			"pod_subnet":     v.PodSubnet,
 			"service_subnet": v.ServiceSubnet,
 		})
@@ -7308,6 +7504,10 @@ func (v NetworkValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.Nameservers.Equal(other.Nameservers) {
+		return false
+	}
+
 	if !v.PodSubnet.Equal(other.PodSubnet) {
 		return false
 	}
@@ -7334,6 +7534,9 @@ func (v NetworkValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"ipv6": basetypes.ObjectType{
 			AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
+		},
+		"nameservers": basetypes.MapType{
+			ElemType: types.StringType,
 		},
 		"pod_subnet":     basetypes.StringType{},
 		"service_subnet": basetypes.StringType{},
@@ -10252,6 +10455,412 @@ func (v TaintsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"effect": basetypes.StringType{},
 		"key":    basetypes.StringType{},
 		"value":  basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = OidcConfigurationType{}
+
+type OidcConfigurationType struct {
+	basetypes.ObjectType
+}
+
+func (t OidcConfigurationType) Equal(o attr.Type) bool {
+	other, ok := o.(OidcConfigurationType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t OidcConfigurationType) String() string {
+	return "OidcConfigurationType"
+}
+
+func (t OidcConfigurationType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	apiAudiencesAttribute, ok := attributes["api_audiences"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`api_audiences is missing from object`)
+
+		return nil, diags
+	}
+
+	apiAudiencesVal, ok := apiAudiencesAttribute.(basetypes.SetValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`api_audiences expected to be basetypes.SetValue, was: %T`, apiAudiencesAttribute))
+	}
+
+	serviceAccountIssuerAttribute, ok := attributes["service_account_issuer"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`service_account_issuer is missing from object`)
+
+		return nil, diags
+	}
+
+	serviceAccountIssuerVal, ok := serviceAccountIssuerAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`service_account_issuer expected to be basetypes.StringValue, was: %T`, serviceAccountIssuerAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return OidcConfigurationValue{
+		ApiAudiences:         apiAudiencesVal,
+		ServiceAccountIssuer: serviceAccountIssuerVal,
+		state:                attr.ValueStateKnown,
+	}, diags
+}
+
+func NewOidcConfigurationValueNull() OidcConfigurationValue {
+	return OidcConfigurationValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewOidcConfigurationValueUnknown() OidcConfigurationValue {
+	return OidcConfigurationValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewOidcConfigurationValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (OidcConfigurationValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing OidcConfigurationValue Attribute Value",
+				"While creating a OidcConfigurationValue value, a missing attribute value was detected. "+
+					"A OidcConfigurationValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid OidcConfigurationValue Attribute Type",
+				"While creating a OidcConfigurationValue value, an invalid attribute value was detected. "+
+					"A OidcConfigurationValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra OidcConfigurationValue Attribute Value",
+				"While creating a OidcConfigurationValue value, an extra attribute value was detected. "+
+					"A OidcConfigurationValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra OidcConfigurationValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	apiAudiencesAttribute, ok := attributes["api_audiences"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`api_audiences is missing from object`)
+
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	apiAudiencesVal, ok := apiAudiencesAttribute.(basetypes.SetValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`api_audiences expected to be basetypes.SetValue, was: %T`, apiAudiencesAttribute))
+	}
+
+	serviceAccountIssuerAttribute, ok := attributes["service_account_issuer"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`service_account_issuer is missing from object`)
+
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	serviceAccountIssuerVal, ok := serviceAccountIssuerAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`service_account_issuer expected to be basetypes.StringValue, was: %T`, serviceAccountIssuerAttribute))
+	}
+
+	if diags.HasError() {
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	return OidcConfigurationValue{
+		ApiAudiences:         apiAudiencesVal,
+		ServiceAccountIssuer: serviceAccountIssuerVal,
+		state:                attr.ValueStateKnown,
+	}, diags
+}
+
+func NewOidcConfigurationValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) OidcConfigurationValue {
+	object, diags := NewOidcConfigurationValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewOidcConfigurationValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t OidcConfigurationType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewOidcConfigurationValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewOidcConfigurationValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewOidcConfigurationValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewOidcConfigurationValueMust(OidcConfigurationValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t OidcConfigurationType) ValueType(ctx context.Context) attr.Value {
+	return OidcConfigurationValue{}
+}
+
+var _ basetypes.ObjectValuable = OidcConfigurationValue{}
+
+type OidcConfigurationValue struct {
+	ApiAudiences         basetypes.SetValue    `tfsdk:"api_audiences"`
+	ServiceAccountIssuer basetypes.StringValue `tfsdk:"service_account_issuer"`
+	state                attr.ValueState
+}
+
+func (v OidcConfigurationValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 2)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["api_audiences"] = basetypes.SetType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["service_account_issuer"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 2)
+
+		val, err = v.ApiAudiences.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["api_audiences"] = val
+
+		val, err = v.ServiceAccountIssuer.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["service_account_issuer"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v OidcConfigurationValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v OidcConfigurationValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v OidcConfigurationValue) String() string {
+	return "OidcConfigurationValue"
+}
+
+func (v OidcConfigurationValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var apiAudiencesVal basetypes.SetValue
+	switch {
+	case v.ApiAudiences.IsUnknown():
+		apiAudiencesVal = types.SetUnknown(types.StringType)
+	case v.ApiAudiences.IsNull():
+		apiAudiencesVal = types.SetNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		apiAudiencesVal, d = types.SetValue(types.StringType, v.ApiAudiences.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"api_audiences": basetypes.SetType{
+				ElemType: types.StringType,
+			},
+			"service_account_issuer": basetypes.StringType{},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"api_audiences": basetypes.SetType{
+			ElemType: types.StringType,
+		},
+		"service_account_issuer": basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"api_audiences":          apiAudiencesVal,
+			"service_account_issuer": v.ServiceAccountIssuer,
+		})
+
+	return objVal, diags
+}
+
+func (v OidcConfigurationValue) Equal(o attr.Value) bool {
+	other, ok := o.(OidcConfigurationValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.ApiAudiences.Equal(other.ApiAudiences) {
+		return false
+	}
+
+	if !v.ServiceAccountIssuer.Equal(other.ServiceAccountIssuer) {
+		return false
+	}
+
+	return true
+}
+
+func (v OidcConfigurationValue) Type(ctx context.Context) attr.Type {
+	return OidcConfigurationType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v OidcConfigurationValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"api_audiences": basetypes.SetType{
+			ElemType: types.StringType,
+		},
+		"service_account_issuer": basetypes.StringType{},
 	}
 }
 

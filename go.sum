@@ -24,12 +24,12 @@ github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c h1:b3j
 github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260730055315-5a7b45af0678 h1:/Zt+Nu0dcbmdvH6LLGBn0U6XG7LeCreCTjgMjjZyOoY=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260730055315-5a7b45af0678/go.mod h1:r0xo4vsilB9b3xhVopHe2D6WEAD0aR9NojaLT9XuAb0=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260805103544-f911df8e40ac h1:gMlqmJ2iKJSZxbx8YDtFS/2MrpVrKdNVBdeJnMA3h20=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260805103544-f911df8e40ac/go.mod h1:r0xo4vsilB9b3xhVopHe2D6WEAD0aR9NojaLT9XuAb0=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d h1:NbCSh/ZDJj2g9jiiYxFV9hJB+qCqzCoayiVmWAnMrms=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d/go.mod h1:SZ0uCQZvcnj9N3o7dFPrt2KnS7F6RELkFV1Py7fN5Jg=
-github.com/RafaySystems/rctl v1.29.1-0.20260722095632-2d9b18fc964d h1:f5PDqh6cL5nTQyPl5IhaY+F7H4TSK79ruLw4pZ751zA=
-github.com/RafaySystems/rctl v1.29.1-0.20260722095632-2d9b18fc964d/go.mod h1:SIXRyrmzGerhuMn0a6y+DJyW6WwMxq64E1WJxWM8l5U=
+github.com/RafaySystems/rctl v1.29.1-0.20260806063717-0f5d37a61099 h1:jN4UlG+2HrbhuU0Toy1xAzR5cNwDTPKypRCegZLuoTw=
+github.com/RafaySystems/rctl v1.29.1-0.20260806063717-0f5d37a61099/go.mod h1:0ov7g7ukyB3mQ7wHySiYhbu8jJFqG46EgprAclIg1zY=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=

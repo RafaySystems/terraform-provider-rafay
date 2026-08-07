@@ -7,12 +7,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/rerror"
 	"github.com/RafaySystems/rctl/pkg/share"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -149,6 +153,11 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 	if cse == "false" {
 		// Cluster is using `spec.sharing` for sharing management.
 		return diag.Errorf("Detected conflicting cluster sharing configurations in both 'rafay_*_cluster' and 'rafay_cluster_sharing' resources. Please consolidate the sharing settings into a single resource to ensure consistent cluster sharing behavior.")
+	}
+
+	// For infra-apiserver managed clusters route through the typed V3 client.
+	if isInfraV3ManagedCluster(clusterObj.ClusterType) {
+		return upsertClusterSharingSingleInfraV3(ctx, d, clusterName, projectName, clusterObj.ID, projectObj.ID, create)
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
@@ -305,6 +314,11 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
+	// For infra-apiserver managed clusters read via the typed V3 client.
+	if isInfraV3ManagedCluster(clusterObj.ClusterType) {
+		return readClusterSharingSingleInfraV3(ctx, d, clusterName, projectName)
+	}
+
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
 		if n, ok1 := v[0].(map[string]interface{})["projectname"].(string); ok1 {
 			addProject.Name = n
@@ -413,6 +427,11 @@ func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
+	// For infra-apiserver managed clusters delete via the typed V3 client.
+	if isInfraV3ManagedCluster(clusterObj.ClusterType) {
+		return deleteClusterSharingSingleInfraV3(ctx, d, clusterName, projectName, clusterObj.ID, projectObj.ID)
+	}
+
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
 		if n, ok1 := v[0].(map[string]interface{})["projectname"].(string); ok1 {
 			addProject.Name = n
@@ -473,4 +492,215 @@ func removeProjects(projectNameToRemove string, projs []*commonpb.ProjectMeta) [
 	}
 
 	return updatedProjs
+}
+
+// upsertClusterSharingSingleInfraV3 handles create/update for cluster_sharing_single on
+// infra-apiserver-managed clusters. It modifies only the target project in spec.Sharing,
+// preserving any other projects already shared.
+func upsertClusterSharingSingleInfraV3(ctx context.Context, d *schema.ResourceData, clusterName, projectName, clusterID, projectID string, create bool) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	newProjectName := ""
+	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
+		if n, ok1 := v[0].(map[string]interface{})["projectname"].(string); ok1 {
+			newProjectName = n
+		}
+	}
+	if newProjectName == "" {
+		return diag.Errorf("cluster_sharing_single: projectname must not be empty")
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    clusterName,
+		Project: projectName,
+	})
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing_single infraV3 get failed: %w", err))
+	}
+
+	// Build updated project list: start from current sharing, modify target entry.
+	existing := []*infrapb.Projects{}
+	if ag.Spec.Sharing != nil && ag.Spec.Sharing.Enabled {
+		for _, p := range ag.Spec.Sharing.Projects {
+			if p.Name != "*" {
+				existing = append(existing, p)
+			}
+		}
+	}
+
+	if !create && d.HasChange("sharing") {
+		old, _ := d.GetChange("sharing")
+		oldName := ""
+		if ov, ok := old.([]interface{}); ok && len(ov) > 0 {
+			if n, ok1 := ov[0].(map[string]interface{})["projectname"].(string); ok1 {
+				oldName = n
+			}
+		}
+		// Remove old project from the list.
+		updated := []*infrapb.Projects{}
+		for _, p := range existing {
+			if p.Name != oldName {
+				updated = append(updated, p)
+			}
+		}
+		existing = updated
+	}
+
+	// Add new project if not already present.
+	found := false
+	for _, p := range existing {
+		if p.Name == newProjectName {
+			found = true
+			break
+		}
+	}
+	if !found {
+		existing = append(existing, &infrapb.Projects{Name: newProjectName})
+	}
+
+	ag.Spec.Sharing = &infrapb.Sharing{Enabled: true, Projects: existing}
+	if err = client.InfraV3().Cluster().Apply(ctx, ag, options.ApplyOptions{}); err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing_single infraV3 apply failed: %w", err))
+	}
+
+	// Set v1 cluster_sharing_external flag so rafay_gke_cluster read suppresses sharing.
+	var projectIDs []string
+	for _, p := range existing {
+		pID, e := config.GetProjectIdByName(p.Name)
+		if e == nil {
+			projectIDs = append(projectIDs, pID)
+		}
+	}
+	cluster.AssignClusterToProjects(clusterID, projectID, share.ShareModeCustom, projectIDs, uaDef, clusterSharingExt)
+
+	d.Set("sharing", []interface{}{map[string]interface{}{
+		"projectname":   newProjectName,
+		"projects_list": func() []map[string]interface{} {
+			var out []map[string]interface{}
+			for _, p := range existing {
+				out = append(out, map[string]interface{}{"name": p.Name, "id": ""})
+			}
+			return out
+		}(),
+	}})
+	d.SetId(clusterName)
+	return diags
+}
+
+// readClusterSharingSingleInfraV3 reads the current sharing state and reflects whether
+// the target projectname is still shared.
+func readClusterSharingSingleInfraV3(ctx context.Context, d *schema.ResourceData, clusterName, projectName string) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	targetName := ""
+	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
+		if n, ok1 := v[0].(map[string]interface{})["projectname"].(string); ok1 {
+			targetName = n
+		}
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    clusterName,
+		Project: projectName,
+	})
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing_single infraV3 read failed: %w", err))
+	}
+
+	allProjs := []map[string]interface{}{}
+	isShared := false
+	if ag.Spec.Sharing != nil && ag.Spec.Sharing.Enabled {
+		for _, p := range ag.Spec.Sharing.Projects {
+			if p.Name == "*" {
+				continue
+			}
+			allProjs = append(allProjs, map[string]interface{}{"name": p.Name, "id": ""})
+			if p.Name == targetName {
+				isShared = true
+			}
+		}
+	}
+	if !isShared {
+		targetName = ""
+	}
+
+	d.Set("sharing", []interface{}{map[string]interface{}{
+		"projectname":   targetName,
+		"projects_list": allProjs,
+	}})
+	if err2 := d.Set("clustername", clusterName); err2 != nil {
+		return diag.FromErr(err2)
+	}
+	if err2 := d.Set("project", projectName); err2 != nil {
+		return diag.FromErr(err2)
+	}
+	return diags
+}
+
+// deleteClusterSharingSingleInfraV3 removes only the target project from sharing.
+// If no projects remain after removal, sharing is set to nil (disabled).
+func deleteClusterSharingSingleInfraV3(ctx context.Context, d *schema.ResourceData, clusterName, projectName, clusterID, projectID string) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	targetName := ""
+	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
+		if n, ok1 := v[0].(map[string]interface{})["projectname"].(string); ok1 {
+			targetName = n
+		}
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    clusterName,
+		Project: projectName,
+	})
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing_single infraV3 get failed on delete: %w", err))
+	}
+
+	remaining := []*infrapb.Projects{}
+	if ag.Spec.Sharing != nil && ag.Spec.Sharing.Enabled {
+		for _, p := range ag.Spec.Sharing.Projects {
+			if p.Name != targetName && p.Name != "*" {
+				remaining = append(remaining, p)
+			}
+		}
+	}
+
+	if len(remaining) == 0 {
+		ag.Spec.Sharing = nil
+		// Clear the v1 cluster_sharing_external flag.
+		cluster.UnassignClusterFromProjects(clusterID, projectID, share.ShareModeAll, []string{}, uaDef, "")
+	} else {
+		ag.Spec.Sharing = &infrapb.Sharing{Enabled: true, Projects: remaining}
+		// Keep flag set; update project list in v1.
+		var projectIDs []string
+		for _, p := range remaining {
+			pID, e := config.GetProjectIdByName(p.Name)
+			if e == nil {
+				projectIDs = append(projectIDs, pID)
+			}
+		}
+		cluster.AssignClusterToProjects(clusterID, projectID, share.ShareModeCustom, projectIDs, uaDef, clusterSharingExt)
+	}
+
+	if err = client.InfraV3().Cluster().Apply(ctx, ag, options.ApplyOptions{}); err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing_single infraV3 apply failed on delete: %w", err))
+	}
+	d.SetId("")
+	return diags
 }

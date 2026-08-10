@@ -760,6 +760,7 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 	}
 	v.NodePools = nodePools
 
+	v.state = attr.ValueStateKnown
 	return diags
 }
 

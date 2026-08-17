@@ -182,7 +182,7 @@ resource "rafay_addon" "helm4_upload" {
       }
       options {
         set                 = ["replicaCount=3"]
-        set_string          = ["image.tag=v1.0.0"]
+        set_string          = ["image.tag=latest"]
         wait_strategy       = "watcher"
         wait_for_jobs       = true
         timeout             = "5m0s"
@@ -288,6 +288,137 @@ resource "rafay_addon" "helm4_catalog" {
             name = "path/to/values/values.yaml"
           }
         }
+      }
+      options {
+        server_side_apply = "true"
+        skip_crds         = true
+        sub_notes         = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+```
+
+Helm4 chart upload without a values file
+
+```terraform
+resource "rafay_addon" "helm4_upload_without_values" {
+  metadata {
+    name    = "helm4-upload-defaults-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "file://relative/path/to/chart.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        timeout             = "5m0s"
+        rollback_on_failure = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+```
+
+Helm4 chart from a Helm repository with a values file
+
+```terraform
+resource "rafay_addon" "helm4_helm_repository_with_values" {
+  metadata {
+    name    = "helm4-helm-repo-values-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "helm-repo"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
+        }
+      }
+      options {
+        server_side_apply = "auto"
+        wait_strategy     = "watcher"
+        timeout           = "5m0s"
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+```
+
+Helm4 chart from Git without a values file
+
+```terraform
+resource "rafay_addon" "helm4_git_repository_without_values" {
+  metadata {
+    name    = "helm4-git-defaults-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace     = "tfdemonamespace1"
+    version       = "v1.0"
+    version_state = "active"
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-helm-charts-repo"
+        revision   = "main"
+        chart_path {
+          name = "path/to/chart/file/in/git/test-chart-2.4.1.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        wait_for_jobs       = true
+        timeout             = "10m0s"
+        rollback_on_failure = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+```
+
+Helm4 chart from a catalog without a values file
+
+```terraform
+resource "rafay_addon" "helm4_catalog_without_values" {
+  metadata {
+    name    = "helm4-catalog-defaults-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "15.14.0"
       }
       options {
         server_side_apply = "true"

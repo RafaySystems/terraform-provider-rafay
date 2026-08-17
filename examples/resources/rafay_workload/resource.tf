@@ -194,27 +194,27 @@ resource "rafay_workload" "tftestworkload8" {
 resource "rafay_workload" "helm4_upload" {
   metadata {
     name    = "helm4-upload-workload"
-    project = "terraform"
+    project = "rishabh-proj1"
   }
   spec {
-    namespace = "test-workload-helm4-upload"
+    namespace = "rishabhtb2-ns1"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-1"
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
     }
     artifact {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://relative/path/to/chart.tgz"
+          name = "file://payloads/set-test-chart-0.1.0.tgz"
         }
         values_paths {
-          name = "file://relative/path/to/values.yaml"
+          name = "file://payloads/values.yaml"
         }
       }
       options {
         set                 = ["replicaCount=3"]
-        set_string          = ["image.tag=v1.0.0"]
+        set_string          = ["image.tag=latest"]
         wait_strategy       = "watcher"
         wait_for_jobs       = true
         timeout             = "5m0s"
@@ -230,18 +230,18 @@ resource "rafay_workload" "helm4_upload" {
 resource "rafay_workload" "helm4_helm_repository" {
   metadata {
     name    = "helm4-helm-repo-workload"
-    project = "terraform-project"
+    project = "rishabh-proj1"
   }
   spec {
-    namespace = "tf-namespace1"
+    namespace = "rishabhtb2-ns1"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-1"
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
     }
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm-repo"
+        repository    = "default-bitnami"
         chart_name    = "nginx"
         chart_version = "25.0.16"
       }
@@ -258,13 +258,13 @@ resource "rafay_workload" "helm4_helm_repository" {
 resource "rafay_workload" "helm4_git_repository" {
   metadata {
     name    = "helm4-git-repository-workload"
-    project = "terraform"
+    project = "rishabh-proj1"
   }
   spec {
-    namespace = "test-workload-helm4-git"
+    namespace = "rishabhtb2-ns1"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName in (cluster-1, cluster-2)"
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
     }
     drift {
       action  = "Notify"
@@ -273,10 +273,13 @@ resource "rafay_workload" "helm4_git_repository" {
     artifact {
       type = "Helm4"
       artifact {
-        repository = "git-helm-charts-repo"
+        repository = "rishabhtb2-repo2"
         revision   = "main"
         chart_path {
-          name = "path/to/chart/file/in/git/test-chart-6.14.1.tgz"
+          name = "my-pod-chart-0.1.0.tgz"
+        }
+        values_paths {
+          name = "values.yaml"
         }
       }
       options {
@@ -292,25 +295,25 @@ resource "rafay_workload" "helm4_git_repository" {
 resource "rafay_workload" "helm4_catalog" {
   metadata {
     name    = "helm4-catalog-workload"
-    project = "terraform"
+    project = "rishabh-proj1"
   }
   spec {
-    namespace = "test-workload-helm4-catalog"
+    namespace = "rishabhtb2-ns1"
     version   = "v1"
     placement {
-      selector = "environment=testing"
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
     }
     artifact {
       type = "Helm4"
       artifact {
         catalog       = "default-bitnami"
         chart_name    = "nginx"
-        chart_version = "25.0.1"
+        chart_version = "15.14.0"
         values_ref {
-          repository = "git-helm-values-repo"
+          repository = "rishabhtb2-repo2"
           revision   = "main"
           values_paths {
-            name = "path/to/values/values.yaml"
+            name = "values.yaml"
           }
         }
       }
@@ -318,6 +321,102 @@ resource "rafay_workload" "helm4_catalog" {
         server_side_apply = "true"
         skip_crds         = true
         sub_notes         = true
+      }
+    }
+  }
+}
+
+# Create a Helm4 workload from an uploaded chart without a values file
+resource "rafay_workload" "helm4_upload_without_values" {
+  metadata {
+    name    = "helm4-upload-defaults-workload"
+    project = "rishabh-proj1"
+  }
+  spec {
+    namespace = "rishabhtb2-ns1"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "file://payloads/set-test-chart-0.1.0.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        timeout             = "5m0s"
+        rollback_on_failure = true
+      }
+    }
+  }
+}
+
+# Create a Helm4 workload from a Helm repository with a values file
+resource "rafay_workload" "helm4_helm_repository_with_values" {
+  metadata {
+    name    = "helm4-helm-repo-values-workload"
+    project = "rishabh-proj1"
+  }
+  spec {
+    namespace = "rishabhtb2-ns1"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
+        values_paths {
+          name = "file://payloads/values.yaml"
+        }
+      }
+      options {
+        server_side_apply = "auto"
+        wait_strategy     = "watcher"
+        timeout           = "5m0s"
+      }
+    }
+  }
+}
+
+# Create a Helm4 workload from Git without values, using label placement and drift protection
+resource "rafay_workload" "helm4_git_defaults_labels_drift" {
+  metadata {
+    name    = "helm4-git-labels-drift-workload"
+    project = "rishabh-proj1"
+  }
+  spec {
+    namespace = "rishabhtb2-ns1"
+    version   = "v1"
+    placement {
+      labels {
+        key   = "environment"
+        value = "testing"
+      }
+    }
+    drift {
+      # Change to "Notify" and re-apply to test drift action updates.
+      action  = "Deny"
+      enabled = true
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "rishabhtb2-repo2"
+        revision   = "main"
+        chart_path {
+          name = "my-pod-chart-0.1.0.tgz"
+        }
+      }
+      options {
+        wait_strategy = "legacy"
+        timeout       = "10m0s"
       }
     }
   }

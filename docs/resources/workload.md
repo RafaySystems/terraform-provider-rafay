@@ -268,7 +268,7 @@ resource "rafay_workload" "helm4_upload" {
       }
       options {
         set                 = ["replicaCount=3"]
-        set_string          = ["image.tag=v1.0.0"]
+        set_string          = ["image.tag=latest"]
         wait_strategy       = "watcher"
         wait_for_jobs       = true
         timeout             = "5m0s"
@@ -381,7 +381,7 @@ resource "rafay_workload" "helm4_catalog" {
       artifact {
         catalog       = "default-bitnami"
         chart_name    = "nginx"
-        chart_version = "25.0.1"
+        chart_version = "15.14.0"
         values_ref {
           repository = "git-helm-values-repo"
           revision   = "main"
@@ -394,6 +394,117 @@ resource "rafay_workload" "helm4_catalog" {
         server_side_apply = "true"
         skip_crds         = true
         sub_notes         = true
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from an uploaded chart without a values file.
+
+```terraform
+resource "rafay_workload" "helm4_upload_without_values" {
+  metadata {
+    name    = "helm4-upload-defaults-workload"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload-helm4-upload-defaults"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "file://payloads/set-test-chart-0.1.0.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        timeout             = "5m0s"
+        rollback_on_failure = true
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from a Helm repository with a values file.
+
+```terraform
+resource "rafay_workload" "helm4_helm_repository_with_values" {
+  metadata {
+    name    = "helm4-helm-repo-values-workload"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload-helm4-repository-values"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "helm-repo"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
+        values_paths {
+          name = "file://payloads/values.yaml"
+        }
+      }
+      options {
+        server_side_apply = "auto"
+        wait_strategy     = "watcher"
+        timeout           = "5m0s"
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from Git without a values file, place it using cluster labels, and enable drift protection.
+
+```terraform
+resource "rafay_workload" "helm4_git_defaults_labels_drift" {
+  metadata {
+    name    = "helm4-git-labels-drift-workload"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload-helm4-git-labels"
+    version   = "v1"
+    placement {
+      labels {
+        key   = "environment"
+        value = "testing"
+      }
+    }
+    drift {
+      # Change to "Notify" and re-apply to test drift action updates.
+      action  = "Deny"
+      enabled = true
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-helm-charts-repo"
+        revision   = "main"
+        chart_path {
+          name = "path/to/chart/file/in/git/test-chart-6.14.1.tgz"
+        }
+      }
+      options {
+        wait_strategy = "legacy"
+        timeout       = "10m0s"
       }
     }
   }

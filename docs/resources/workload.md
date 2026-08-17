@@ -471,7 +471,7 @@ resource "rafay_workload" "helm4_helm_repository_with_values" {
 
 ---
 
-Create a Helm4 workload from Git without a values file, place it using cluster labels, and enable drift protection.
+Create a Helm4 workload from Git without a values file, place it using a selector, and enable drift protection.
 
 ```terraform
 resource "rafay_workload" "helm4_git_defaults_labels_drift" {
@@ -483,13 +483,10 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
     namespace = "test-workload-helm4-git-labels"
     version   = "v1"
     placement {
-      labels {
-        key   = "environment"
-        value = "testing"
-      }
+      selector = "rafay.dev/clusterName=cluster-1"
     }
     drift {
-      # Change to "Notify" and re-apply to test drift action updates.
+      # Increment spec.version when changing the drift action.
       action  = "Deny"
       enabled = true
     }

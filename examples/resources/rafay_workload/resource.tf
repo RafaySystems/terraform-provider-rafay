@@ -385,7 +385,7 @@ resource "rafay_workload" "helm4_helm_repository_with_values" {
   }
 }
 
-# Create a Helm4 workload from Git without values, using label placement and drift protection
+# Create a Helm4 workload from Git without values, using selector placement and drift protection
 resource "rafay_workload" "helm4_git_defaults_labels_drift" {
   metadata {
     name    = "helm4-git-labels-drift-workload"
@@ -393,15 +393,12 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
   }
   spec {
     namespace = "rishabhtb2-ns1"
-    version   = "v1"
+    version   = "v4"
     placement {
-      labels {
-        key   = "environment"
-        value = "testing"
-      }
+      selector = "rafay.dev/clusterName=rishabhtb2-cluster1"
     }
     drift {
-      # Change to "Notify" and re-apply to test drift action updates.
+      # Increment spec.version when changing the drift action.
       action  = "Deny"
       enabled = true
     }

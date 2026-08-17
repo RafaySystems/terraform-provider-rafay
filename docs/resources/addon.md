@@ -162,25 +162,27 @@ resource "rafay_addon" "tfdemoaddon6" {
 Helm4 chart upload with options example
 
 ```terraform
-resource "rafay_addon" "tfdemoaddon8" {
+resource "rafay_addon" "helm4_upload" {
   metadata {
-    name    = "tfdemoaddon8"
+    name    = "helm4-upload-addon"
     project = "terraform"
   }
   spec {
-    namespace = "tftestnamespace"
+    namespace = "tfdemonamespace1"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://artifacts/tfdemoaddon8/apache-9.0.9.tgz"
+          name = "file://artifacts/tfdemoaddon6/set-test-chart-0.1.0.tgz"
         }
         values_paths {
-          name = "file://artifacts/tfdemoaddon8/values.yaml"
+          name = "file://artifacts/tfdemoaddon6/values.yaml"
         }
       }
       options {
+        set                 = ["replicaCount=3"]
+        set_string          = ["image.tag=v1.0.0"]
         wait_strategy       = "watcher"
         wait_for_jobs       = true
         timeout             = "5m0s"
@@ -199,13 +201,13 @@ resource "rafay_addon" "tfdemoaddon8" {
 Helm4 chart from Helm repository example
 
 ```terraform
-resource "rafay_addon" "tfdemoaddon9" {
+resource "rafay_addon" "helm4_helm_repository" {
   metadata {
-    name    = "tfdemoaddon9"
+    name    = "helm4-helm-repository-addon"
     project = "terraform"
   }
   spec {
-    namespace = "tftestnamespace"
+    namespace = "tfdemonamespace1"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -215,11 +217,91 @@ resource "rafay_addon" "tfdemoaddon9" {
         chart_version = "9.0.9"
       }
       options {
-        set               = ["replicaCount=3"]
-        set_string        = ["image.tag=1.2.3"]
         server_side_apply = "auto"
         dry_run_strategy  = "none"
-        description       = "apache addon managed by terraform"
+        description       = "Apache add-on managed by Terraform"
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+```
+
+Helm4 chart from Git repository example
+
+```terraform
+resource "rafay_addon" "helm4_git_repository" {
+  metadata {
+    name    = "helm4-git-repository-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-helm-charts-repo"
+        revision   = "main"
+        chart_path {
+          name = "path/to/chart/file/in/git/test-chart-2.4.1.tgz"
+        }
+        values_ref {
+          repository = "git-helm-values-repo"
+          revision   = "main"
+          values_paths {
+            name = "path/to/values/values.yaml"
+          }
+        }
+      }
+      options {
+        labels = {
+          environment = "production"
+        }
+        wait_strategy   = "legacy"
+        reuse_values    = true
+        force_conflicts = false
+        take_ownership  = false
+        enable_dns      = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+```
+
+Helm4 chart from catalog example
+
+```terraform
+resource "rafay_addon" "helm4_catalog" {
+  metadata {
+    name    = "helm4-catalog-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "15.14.0"
+        values_paths {
+          name = "file://artifacts/tfdemoaddon6/values.yaml"
+        }
+      }
+      options {
+        server_side_apply           = "true"
+        skip_crds                   = false
+        skip_schema_validation      = false
+        disable_open_api_validation = false
+        disable_hooks               = false
+        sub_notes                   = true
       }
     }
     sharing {
@@ -284,7 +366,7 @@ resource "rafay_addon" "tfdemoaddon9" {
 
 ***Optional***
 
-- `options` - (Block List, Max: 1) Deployment options for Helm type artifacts. (See [below for nested schema](#nestedblock--spec--artifact--options))
+- `options` - (Block List, Max: 1) Deployment options for Helm4 artifacts. (See [below for nested schema](#nestedblock--spec--artifact--options))
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>
@@ -315,6 +397,7 @@ resource "rafay_addon" "tfdemoaddon9" {
 - `secret` - (Block List, Max: 1) The relative path to the alert manager secret file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `statefulset` - (Block List, Max: 1) The relative path to the alert manager statefulset file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `values_paths` - (Block List) The relative path to the values file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
+- `values_ref` - (Block List, Max: 1) References override values files in a Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref))
 - `url` - (String) The URL endpoint of the YAML manifest to be downloaded from the internet. 
 
 <a id="nestedblock--spec--artifact--artifact--chart_path"></a>
@@ -323,6 +406,23 @@ resource "rafay_addon" "tfdemoaddon9" {
 ***Required***
 
 - `name` - (String) The relative path of the artifact. 
+
+
+<a id="nestedblock--spec--artifact--artifact--values_ref"></a>
+### Nested Schema for `spec.artifact.artifact.values_ref`
+
+***Required***
+
+- `repository` - (String) The name of the Git repository.
+- `revision` - (String) The branch or tag in the Git repository.
+- `values_paths` - (Block List) Relative paths to values files in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref--values_paths))
+
+<a id="nestedblock--spec--artifact--artifact--values_ref--values_paths"></a>
+### Nested Schema for `spec.artifact.artifact.values_ref.values_paths`
+
+***Required***
+
+- `name` - (String) The relative path to a values file.
 
 
 <a id="nestedblock--spec--artifact--options"></a>

@@ -153,9 +153,9 @@ resource "rafay_addon" "tfdemoaddon7" {
 }
 
 # Helm4 Chart Upload Example
-resource "rafay_addon" "tfdemoaddon8" {
+resource "rafay_addon" "helm4_upload" {
   metadata {
-    name    = "tfdemoaddon8"
+    name    = "helm4-upload-addon"
     project = "terraform"
   }
   spec {
@@ -165,13 +165,15 @@ resource "rafay_addon" "tfdemoaddon8" {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://artifacts/tfdemoaddon4/apache-9.0.9.tgz"
+          name = "file://artifacts/tfdemoaddon6/set-test-chart-0.1.0.tgz"
         }
         values_paths {
-          name = "file://artifacts/tfdemoaddon4/values.yaml"
+          name = "file://artifacts/tfdemoaddon6/values.yaml"
         }
       }
       options {
+        set                 = ["replicaCount=3"]
+        set_string          = ["image.tag=v1.0.0"]
         wait_strategy       = "watcher"
         wait_for_jobs       = true
         timeout             = "5m0s"
@@ -180,13 +182,16 @@ resource "rafay_addon" "tfdemoaddon8" {
         rollback_on_failure = true
       }
     }
+    sharing {
+      enabled = false
+    }
   }
 }
 
 # Helm4 Chart from Helm Repository Example
-resource "rafay_addon" "tfdemoaddon9" {
+resource "rafay_addon" "helm4_helm_repository" {
   metadata {
-    name    = "tfdemoaddon9"
+    name    = "helm4-helm-repository-addon"
     project = "terraform"
   }
   spec {
@@ -195,29 +200,26 @@ resource "rafay_addon" "tfdemoaddon9" {
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm-repo"
-        chart_name    = "apache"
-        chart_version = "9.0.9"
-        values_paths {
-          name = "file://relative/path/to/some/chart/values.yaml"
-        }
+        repository    = "helm4-repo"
+        chart_name    = "redis"  # chart name
+        chart_version = "27.0.12"   # chart version
       }
       options {
-        set               = ["replicaCount=3"]
         server_side_apply = "auto"
         dry_run_strategy  = "none"
-        skip_crds         = false
-        disable_hooks     = false
-        description       = "apache addon managed by terraform"
+        description       = "Redis add-on managed using Terraform"
       }
+    }
+    sharing {
+      enabled = false
     }
   }
 }
 
 # Helm4 Chart from Git Repository Example
-resource "rafay_addon" "tfdemoaddon10" {
+resource "rafay_addon" "helm4_git_repository" {
   metadata {
-    name    = "tfdemoaddon10"
+    name    = "helm4-git-repository-addon"
     project = "terraform"
   }
   spec {
@@ -226,30 +228,66 @@ resource "rafay_addon" "tfdemoaddon10" {
     artifact {
       type = "Helm4"
       artifact {
-        repository = "git-repo"
+        repository = "git-helm-charts-repo"
         revision   = "main"
         chart_path {
-          name = "charts/apache"
+          name = "path/to/chart/file/in/git/test-chart-2.4.1.tgz"
         }
         values_ref {
-          repository = "git-repo"
+          repository = "git-helm-values-repo"
           revision   = "main"
           values_paths {
-            name = "charts/apache/values.yaml"
+            name = "path/to/values/values.yaml"
           }
         }
       }
       options {
         labels = {
-          "env" = "production"
+          environment = "production"
         }
-        dependency_update       = true
-        reuse_values            = false
-        reset_then_reuse_values = false
-        force_conflicts         = false
-        take_ownership          = false
-        enable_dns              = true
+        wait_strategy   = "legacy"
+        reuse_values    = true
+        force_conflicts = false
+        take_ownership  = false
+        enable_dns      = true
       }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+# Helm4 Chart from Catalog Example
+resource "rafay_addon" "helm4_catalog" {
+  metadata {
+    name    = "helm4-catalog-addon"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "15.14.0"
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
+        }
+      }
+      options {
+        server_side_apply           = "true"
+        skip_crds                   = false
+        skip_schema_validation      = false
+        disable_open_api_validation = false
+        disable_hooks               = false
+        sub_notes                   = true
+      }
+    }
+    sharing {
+      enabled = false
     }
   }
 }

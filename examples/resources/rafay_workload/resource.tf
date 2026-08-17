@@ -79,7 +79,7 @@ resource "rafay_workload" "tftestworkload3" {
   }
 }
 
-# Create a workload of K8s type by uploading from local system 
+# Create a workload of K8s type by uploading from local system
 resource "rafay_workload" "tftestworkload4" {
   metadata {
     name    = "tftestworkload4"
@@ -169,32 +169,6 @@ resource "rafay_workload" "tftestworkload6" {
   }
 }
 
-# Create a workload from catalog
-resource "rafay_workload" "tftestworkload7" {
-  metadata {
-    name    = "tftestworkload7"
-    project = "terraform"
-  }
-  spec {
-    namespace = "test-workload7"
-    version   = "v1"
-    placement {
-      selector = "rafay.dev/clusterName=cluster-1"
-    }
-    artifact {
-      type = "Helm"
-      artifact {
-        catalog       = "catalogName"
-        chart_name    = "chartName"
-        chart_version = "chartVersion"
-        values_paths {
-          name = "file://relative/path/to/some/chart/values.yaml"
-        }
-      }
-    }
-  }
-}
-
 # Create a workload from web URL
 resource "rafay_workload" "tftestworkload8" {
   metadata {
@@ -216,16 +190,15 @@ resource "rafay_workload" "tftestworkload8" {
   }
 }
 
-
-# Example Workload using helm4 options
-resource "rafay_workload" "tftestworkload9" {
+# Create a Helm4 workload by uploading a chart
+resource "rafay_workload" "helm4_upload-workload" {
   metadata {
-    name    = "tftestworkload9"
-    project = "terraform"
+    name    = "helm4_upload-workload"
+    project = "terraform-project"
   }
   spec {
-    namespace = "ns4"
-    version   = "v3.0"
+    namespace = "tfnamespace1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -233,16 +206,132 @@ resource "rafay_workload" "tftestworkload9" {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "relative/path/to/some/chart.tgz"
+          name = "file://relative/path/to/chart.tgz"
+        }
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
         }
       }
       options {
-        max_history       = 10
-        server_side_apply = "auto"
-        timeout           = "5m0s"
-        wait_for_jobs     = true
-        wait_strategy     = "watcher"
+        set                 = ["replicaCount=3"]
+        set_string          = ["image.tag=v1.0.0"]
+        wait_strategy       = "watcher"
+        wait_for_jobs       = true
+        timeout             = "5m0s"
+        max_history         = 10
+        cleanup_on_fail     = true
+        rollback_on_failure = true
       }
     }
   }
 }
+
+# Create a Helm4 workload from a Helm repository
+resource "rafay_workload" "helm4_helm_repository" {
+  metadata {
+    name    = "helm4-helm-repo-workload"
+    project = "terraform-project"
+  }
+  spec {
+    namespace = "tf-namespace1"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "helm-repo"
+        chart_name    = "nginx" 
+        chart_version = "25.0.16"
+      }
+      options {
+        server_side_apply = "auto"
+        dry_run_strategy  = "none"
+        description       = "Apache workload managed by Terraform"
+      }
+    }
+  }
+}
+
+# Create a Helm4 workload from a Git repository
+resource "rafay_workload" "helm4_git_repository" {
+  metadata {
+    name    = "helm4-git-repository-workload"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload-helm4-git"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName in (cluster-1, cluster-2)"
+    }
+    drift {
+      action  = "Notify"
+      enabled = false
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-helm-charts-repo"
+        revision   = "main"
+        chart_path {
+          name = "path/to/chart/file/in/git/test-chart-6.14.1.tgz"
+        }
+        values_ref {
+          repository = "git-helm-values-repo"
+          revision   = "main"
+          values_paths {
+            name = "path/to/values/values.yaml"
+          }
+        }
+      }
+      options {
+        labels = {
+          environment = "testing"
+        }
+        wait_strategy   = "legacy"
+        reuse_values    = true
+        force_conflicts = false
+        take_ownership  = false
+        enable_dns      = true
+      }
+    }
+  }
+}
+
+# Create a Helm4 workload from a catalog
+resource "rafay_workload" "helm4_catalog" {
+  metadata {
+    name    = "helm4-catalog-workload"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload-helm4-catalog"
+    version   = "v1"
+    placement {
+      selector = "environment=testing"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.1"
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
+        }
+      }
+      options {
+        server_side_apply           = "true"
+        skip_crds                   = false
+        skip_schema_validation      = false
+        disable_open_api_validation = false
+        disable_hooks               = false
+        sub_notes                   = true
+      }
+    }
+  }
+}
+
+

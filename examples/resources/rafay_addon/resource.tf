@@ -156,19 +156,19 @@ resource "rafay_addon" "tfdemoaddon7" {
 resource "rafay_addon" "helm4_upload" {
   metadata {
     name    = "helm4-upload-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace = "rishabhtb2-ns1"
-    version   = "v1.1"
+    namespace = "namespace-name"
+    version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://artifacts/tfdemoaddon6/set-test-chart-0.1.0.tgz"
+          name = "file://relative/path/to/chart.tgz"
         }
         values_paths {
-          name = "file://artifacts/tfdemoaddon6/values.yaml"
+          name = "file://relative/path/to/values.yaml"
         }
       }
       options {
@@ -192,11 +192,11 @@ resource "rafay_addon" "helm4_upload" {
 resource "rafay_addon" "helm4_helm_repository" {
   metadata {
     name    = "helm4-helm-repository-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace = "rishabhtb2-ns1"
-    version   = "v1.1"
+    namespace = "namespace-name"
+    version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
@@ -220,22 +220,22 @@ resource "rafay_addon" "helm4_helm_repository" {
 resource "rafay_addon" "helm4_git_repository" {
   metadata {
     name    = "helm4-git-repository-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace     = "rishabhtb2-ns1"
+    namespace     = "namespace-name"
     version       = "v1.0"
     version_state = "active"
     artifact {
       type = "Helm4"
       artifact {
-        repository = "rishabhtb2-repo2"
+        repository = "git-repository-name"
         revision   = "main"
         chart_path {
-          name = "my-pod-chart-0.1.0.tgz"
+          name = "relative/path/to/chart.tgz"
         }
         values_paths {
-          name = "values.yaml"
+          name = "relative/path/to/values.yaml"
         }
       }
       options {
@@ -255,10 +255,10 @@ resource "rafay_addon" "helm4_git_repository" {
 resource "rafay_addon" "helm4_catalog" {
   metadata {
     name    = "helm4-catalog-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace = "rishabhtb2-ns1"
+    namespace = "namespace-name"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -267,10 +267,10 @@ resource "rafay_addon" "helm4_catalog" {
         chart_name    = "nginx"
         chart_version = "15.14.0"
         values_ref {
-          repository = "rishabhtb2-repo2"
+          repository = "git-repository-name"
           revision   = "main"
           values_paths {
-            name = "values.yaml"
+            name = "relative/path/to/values.yaml"
           }
         }
       }
@@ -290,16 +290,16 @@ resource "rafay_addon" "helm4_catalog" {
 resource "rafay_addon" "helm4_upload_without_values" {
   metadata {
     name    = "helm4-upload-defaults-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace = "rishabhtb2-ns1"
+    namespace = "namespace-name"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://artifacts/tfdemoaddon6/set-test-chart-0.1.0.tgz"
+          name = "file://relative/path/to/chart.tgz"
         }
       }
       options {
@@ -318,10 +318,10 @@ resource "rafay_addon" "helm4_upload_without_values" {
 resource "rafay_addon" "helm4_helm_repository_with_values" {
   metadata {
     name    = "helm4-helm-repo-values-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace = "rishabhtb2-ns1"
+    namespace = "namespace-name"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -330,7 +330,7 @@ resource "rafay_addon" "helm4_helm_repository_with_values" {
         chart_name    = "nginx"
         chart_version = "25.0.16"
         values_paths {
-          name = "file://artifacts/tfdemoaddon6/values.yaml"
+          name = "file://relative/path/to/values.yaml"
         }
       }
       options {
@@ -349,19 +349,19 @@ resource "rafay_addon" "helm4_helm_repository_with_values" {
 resource "rafay_addon" "helm4_git_repository_without_values" {
   metadata {
     name    = "helm4-git-defaults-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace     = "rishabhtb2-ns1"
+    namespace     = "namespace-name"
     version       = "v1.0"
     version_state = "active"
     artifact {
       type = "Helm4"
       artifact {
-        repository = "rishabhtb2-repo2"
+        repository = "git-repository-name"
         revision   = "main"
         chart_path {
-          name = "my-pod-chart-0.1.0.tgz"
+          name = "relative/path/to/chart.tgz"
         }
       }
       options {
@@ -381,10 +381,10 @@ resource "rafay_addon" "helm4_git_repository_without_values" {
 resource "rafay_addon" "helm4_catalog_without_values" {
   metadata {
     name    = "helm4-catalog-defaults-addon"
-    project = "rishabh-proj1"
+    project = "project-name"
   }
   spec {
-    namespace = "rishabhtb2-ns1"
+    namespace = "namespace-name"
     version   = "v1.0"
     artifact {
       type = "Helm4"

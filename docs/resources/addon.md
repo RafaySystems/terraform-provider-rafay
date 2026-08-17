@@ -247,7 +247,7 @@ resource "rafay_addon" "helm4_git_repository" {
         repository = "test-git-repository"
         revision   = "main"
         chart_path {
-          name = "path/to/chart/file/in/git/test-chart-2.4.1.tgz"
+          name = "relative/path/to/chart.tgz"
         }
       }
       options {
@@ -285,7 +285,7 @@ resource "rafay_addon" "helm4_catalog" {
           repository = "git-helm-values-repo"
           revision   = "main"
           values_paths {
-            name = "path/to/values/values.yaml"
+            name = "relative/path/to/values.yaml"
           }
         }
       }
@@ -385,7 +385,7 @@ resource "rafay_addon" "helm4_git_repository_without_values" {
         repository = "git-helm-charts-repo"
         revision   = "main"
         chart_path {
-          name = "path/to/chart/file/in/git/test-chart-2.4.1.tgz"
+          name = "relative/path/to/chart.tgz"
         }
       }
       options {

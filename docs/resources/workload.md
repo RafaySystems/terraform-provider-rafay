@@ -260,10 +260,10 @@ resource "rafay_workload" "helm4_upload" {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://payloads/set-test-chart-0.1.0.tgz"
+          name = "file://relative/path/to/chart.tgz"
         }
         values_paths {
-          name = "file://payloads/values.yaml"
+          name = "file://relative/path/to/values.yaml"
         }
       }
       options {
@@ -340,13 +340,13 @@ resource "rafay_workload" "helm4_git_repository" {
         repository = "git-helm-charts-repo"
         revision   = "main"
         chart_path {
-          name = "path/to/chart/file/in/git/test-chart-6.14.1.tgz"
+          name = "relative/path/to/chart.tgz"
         }
         values_ref {
           repository = "git-helm-values-repo"
           revision   = "main"
           values_paths {
-            name = "path/to/values/values.yaml"
+            name = "relative/path/to/values.yaml"
           }
         }
       }
@@ -386,7 +386,7 @@ resource "rafay_workload" "helm4_catalog" {
           repository = "git-helm-values-repo"
           revision   = "main"
           values_paths {
-            name = "path/to/values/values.yaml"
+            name = "relative/path/to/values.yaml"
           }
         }
       }
@@ -420,7 +420,7 @@ resource "rafay_workload" "helm4_upload_without_values" {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://payloads/set-test-chart-0.1.0.tgz"
+          name = "file://relative/path/to/chart.tgz"
         }
       }
       options {
@@ -456,7 +456,7 @@ resource "rafay_workload" "helm4_helm_repository_with_values" {
         chart_name    = "nginx"
         chart_version = "25.0.16"
         values_paths {
-          name = "file://payloads/values.yaml"
+          name = "file://relative/path/to/values.yaml"
         }
       }
       options {
@@ -496,7 +496,7 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
         repository = "git-helm-charts-repo"
         revision   = "main"
         chart_path {
-          name = "path/to/chart/file/in/git/test-chart-6.14.1.tgz"
+          name = "relative/path/to/chart.tgz"
         }
       }
       options {

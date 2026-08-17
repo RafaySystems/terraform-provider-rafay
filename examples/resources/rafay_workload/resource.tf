@@ -191,13 +191,13 @@ resource "rafay_workload" "tftestworkload8" {
 }
 
 # Create a Helm4 workload by uploading a chart
-resource "rafay_workload" "helm4_upload-workload" {
+resource "rafay_workload" "helm4_upload" {
   metadata {
-    name    = "helm4_upload-workload"
-    project = "terraform-project"
+    name    = "helm4-upload-workload"
+    project = "terraform"
   }
   spec {
-    namespace = "tfnamespace1"
+    namespace = "test-workload-helm4-upload"
     version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
@@ -242,13 +242,13 @@ resource "rafay_workload" "helm4_helm_repository" {
       type = "Helm4"
       artifact {
         repository    = "helm-repo"
-        chart_name    = "nginx" 
+        chart_name    = "nginx"
         chart_version = "25.0.16"
       }
       options {
         server_side_apply = "auto"
         dry_run_strategy  = "none"
-        description       = "Apache workload managed by Terraform"
+        description       = "NGINX workload managed by Terraform"
       }
     }
   }
@@ -278,23 +278,11 @@ resource "rafay_workload" "helm4_git_repository" {
         chart_path {
           name = "path/to/chart/file/in/git/test-chart-6.14.1.tgz"
         }
-        values_ref {
-          repository = "git-helm-values-repo"
-          revision   = "main"
-          values_paths {
-            name = "path/to/values/values.yaml"
-          }
-        }
       }
       options {
-        labels = {
-          environment = "testing"
-        }
-        wait_strategy   = "legacy"
-        reuse_values    = true
-        force_conflicts = false
-        take_ownership  = false
-        enable_dns      = true
+        wait_strategy = "legacy"
+        timeout       = "10m0s"
+        skip_crds     = true
       }
     }
   }
@@ -318,17 +306,18 @@ resource "rafay_workload" "helm4_catalog" {
         catalog       = "default-bitnami"
         chart_name    = "nginx"
         chart_version = "25.0.1"
-        values_paths {
-          name = "file://relative/path/to/values.yaml"
+        values_ref {
+          repository = "git-helm-values-repo"
+          revision   = "main"
+          values_paths {
+            name = "path/to/values/values.yaml"
+          }
         }
       }
       options {
-        server_side_apply           = "true"
-        skip_crds                   = false
-        skip_schema_validation      = false
-        disable_open_api_validation = false
-        disable_hooks               = false
-        sub_notes                   = true
+        server_side_apply = "true"
+        skip_crds         = true
+        sub_notes         = true
       }
     }
   }

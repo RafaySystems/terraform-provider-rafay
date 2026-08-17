@@ -194,13 +194,13 @@ resource "rafay_workload" "tftestworkload8" {
 resource "rafay_workload" "helm4_upload" {
   metadata {
     name    = "helm4-upload-workload"
-    project = "project-name"
+    project = "test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-name"
+      selector = "environment=dev"
     }
     artifact {
       type = "Helm4"
@@ -230,13 +230,13 @@ resource "rafay_workload" "helm4_upload" {
 resource "rafay_workload" "helm4_helm_repository" {
   metadata {
     name    = "helm4-helm-repo-workload"
-    project = "project-name"
+    project = "test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-name"
+      selector = "rafay.dev/clusterName in (cluster-1,cluster2,cluster3)"
     }
     artifact {
       type = "Helm4"
@@ -258,13 +258,13 @@ resource "rafay_workload" "helm4_helm_repository" {
 resource "rafay_workload" "helm4_git_repository" {
   metadata {
     name    = "helm4-git-repository-workload"
-    project = "project-name"
+    project = "test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-name"
+      selector = "rafay.dev/clusterName=cluster-1"
     }
     drift {
       action  = "Notify"
@@ -295,10 +295,10 @@ resource "rafay_workload" "helm4_git_repository" {
 resource "rafay_workload" "helm4_catalog" {
   metadata {
     name    = "helm4-catalog-workload"
-    project = "project-name"
+    project = "test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-name"
@@ -330,10 +330,10 @@ resource "rafay_workload" "helm4_catalog" {
 resource "rafay_workload" "helm4_upload_without_values" {
   metadata {
     name    = "helm4-upload-defaults-workload"
-    project = "project-name"
+    project = "test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-name"
@@ -358,13 +358,13 @@ resource "rafay_workload" "helm4_upload_without_values" {
 resource "rafay_workload" "helm4_helm_repository_with_values" {
   metadata {
     name    = "helm4-helm-repo-values-workload"
-    project = "project-name"
+    project = "test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-name"
+      selector = "rafay.dev/clusterName=cluster-1"
     }
     artifact {
       type = "Helm4"
@@ -389,13 +389,13 @@ resource "rafay_workload" "helm4_helm_repository_with_values" {
 resource "rafay_workload" "helm4_git_defaults_labels_drift" {
   metadata {
     name    = "helm4-git-labels-drift-workload"
-    project = "project-name"
+    project = "defaultproject"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "tf-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-name"
+      selector = "rafay.dev/clusterName=cluster-1"
     }
     drift {
       # Increment spec.version when changing the drift action.
@@ -413,7 +413,7 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
       }
       options {
         wait_strategy = "legacy"
-        timeout       = "10m0s"
+        timeout       = "2m0s"
       }
     }
   }

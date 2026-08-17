@@ -381,10 +381,10 @@ resource "rafay_addon" "helm4_git_repository_without_values" {
 resource "rafay_addon" "helm4_catalog_without_values" {
   metadata {
     name    = "helm4-catalog-defaults-addon"
-    project = "project-name"
+    project = "defaultproject"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "tf-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"

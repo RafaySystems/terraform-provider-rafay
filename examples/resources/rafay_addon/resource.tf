@@ -156,10 +156,10 @@ resource "rafay_addon" "tfdemoaddon7" {
 resource "rafay_addon" "helm4_upload" {
   metadata {
     name    = "helm4-upload-addon"
-    project = "project-name"
+    project = "helm4-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "helm4-test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -192,10 +192,10 @@ resource "rafay_addon" "helm4_upload" {
 resource "rafay_addon" "helm4_helm_repository" {
   metadata {
     name    = "helm4-helm-repository-addon"
-    project = "project-name"
+    project = "addon-project-name"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -220,10 +220,10 @@ resource "rafay_addon" "helm4_helm_repository" {
 resource "rafay_addon" "helm4_git_repository" {
   metadata {
     name    = "helm4-git-repository-addon"
-    project = "project-name"
+    project = "helm4-test-project"
   }
   spec {
-    namespace     = "namespace-name"
+    namespace     = "helm4-test"
     version       = "v1.0"
     version_state = "active"
     artifact {
@@ -255,10 +255,10 @@ resource "rafay_addon" "helm4_git_repository" {
 resource "rafay_addon" "helm4_catalog" {
   metadata {
     name    = "helm4-catalog-addon"
-    project = "project-name"
+    project = "helm4-test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "helm4-test"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -290,10 +290,10 @@ resource "rafay_addon" "helm4_catalog" {
 resource "rafay_addon" "helm4_upload_without_values" {
   metadata {
     name    = "helm4-upload-defaults-addon"
-    project = "project-name"
+    project = "helm4-test-project"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "helm4-test"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -321,7 +321,7 @@ resource "rafay_addon" "helm4_helm_repository_with_values" {
     project = "project-name"
   }
   spec {
-    namespace = "namespace-name"
+    namespace = "test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -349,10 +349,10 @@ resource "rafay_addon" "helm4_helm_repository_with_values" {
 resource "rafay_addon" "helm4_git_repository_without_values" {
   metadata {
     name    = "helm4-git-defaults-addon"
-    project = "project-name"
+    project = "test-project-name"
   }
   spec {
-    namespace     = "namespace-name"
+    namespace     = "test-namespace"
     version       = "v1.0"
     version_state = "active"
     artifact {

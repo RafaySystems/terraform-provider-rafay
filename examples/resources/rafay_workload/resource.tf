@@ -1,4 +1,4 @@
-# Create workload of Helm package type by uploading files from local system 
+# Create workload of Helm package type by uploading files from local system
 resource "rafay_workload" "tftestworkload1" {
   metadata {
     name    = "tftestworkload1"
@@ -197,7 +197,7 @@ resource "rafay_workload" "helm4_upload" {
     project = "test-project"
   }
   spec {
-    namespace = "test-namespace"
+    namespace = "helm4-test-namespace"
     version   = "v1"
     placement {
       selector = "environment=dev"
@@ -230,7 +230,7 @@ resource "rafay_workload" "helm4_upload" {
 resource "rafay_workload" "helm4_helm_repository" {
   metadata {
     name    = "helm4-helm-repo-workload"
-    project = "test-project"
+    project = "terraform"
   }
   spec {
     namespace = "test-namespace"
@@ -418,5 +418,3 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
     }
   }
 }
-
-

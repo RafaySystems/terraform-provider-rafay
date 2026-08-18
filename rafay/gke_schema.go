@@ -131,6 +131,8 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 	releaseChannel := config.Schema["release_channel"]
 	maintenancePolicy := config.Schema["maintenance_policy"]
 
+	systemComponentsPlacement := resource.ClusterSchema.Schema["spec"].Elem.(*schema.Resource).Schema["system_components_placement"]
+
 	return map[string]*schema.Schema{
 		"api_version": {
 			Type:        schema.TypeString,
@@ -149,11 +151,12 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 			Description: "GKE specific cluster configuration",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"type":              ctype,
-					"blueprint":         blueprint,
-					"cloud_credentials": cc,
-					"proxy":             proxy,
-					"sharing":           sharing,
+					"type":                        ctype,
+					"blueprint":                   blueprint,
+					"cloud_credentials":           cc,
+					"proxy":                       proxy,
+					"sharing":                     sharing,
+					"system_components_placement": systemComponentsPlacement,
 					"config": &schema.Schema{
 						Type:        schema.TypeList,
 						Optional:    true,

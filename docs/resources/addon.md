@@ -165,10 +165,10 @@ Helm4 chart upload with options example
 resource "rafay_addon" "helm4_upload" {
   metadata {
     name    = "helm4-upload-addon"
-    project = "terraform"
+    project = "helm4-project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "helm4-test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -204,22 +204,22 @@ Helm4 chart from Helm repository example
 resource "rafay_addon" "helm4_helm_repository" {
   metadata {
     name    = "helm4-helm-repository-addon"
-    project = "terraform"
+    project = "addon-project-name"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm4-repo"
-        chart_name    = "redis"
-        chart_version = "27.0.12"
+        repository    = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
       }
       options {
         server_side_apply = "auto"
         dry_run_strategy  = "none"
-        description       = "Redis add-on managed using Terraform"
+        description       = "NGINX add-on managed using Terraform"
       }
     }
     sharing {
@@ -235,19 +235,22 @@ Helm4 chart from Git repository example
 resource "rafay_addon" "helm4_git_repository" {
   metadata {
     name    = "helm4-git-repository-addon"
-    project = "terraform"
+    project = "helm4-test-project"
   }
   spec {
-    namespace     = "tfdemonamespace1"
+    namespace     = "helm4-test"
     version       = "v1.0"
     version_state = "active"
     artifact {
       type = "Helm4"
       artifact {
-        repository = "test-git-repository"
+        repository = "git-repository-name"
         revision   = "main"
         chart_path {
           name = "relative/path/to/chart.tgz"
+        }
+        values_paths {
+          name = "relative/path/to/values.yaml"
         }
       }
       options {
@@ -270,10 +273,10 @@ Helm4 chart from catalog example
 resource "rafay_addon" "helm4_catalog" {
   metadata {
     name    = "helm4-catalog-addon"
-    project = "terraform"
+    project = "helm4-test-project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "helm4-test"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -282,7 +285,7 @@ resource "rafay_addon" "helm4_catalog" {
         chart_name    = "nginx"
         chart_version = "15.14.0"
         values_ref {
-          repository = "git-helm-values-repo"
+          repository = "git-repository-name"
           revision   = "main"
           values_paths {
             name = "relative/path/to/values.yaml"
@@ -308,10 +311,10 @@ Helm4 chart upload without a values file
 resource "rafay_addon" "helm4_upload_without_values" {
   metadata {
     name    = "helm4-upload-defaults-addon"
-    project = "terraform"
+    project = "helm4-test-project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "helm4-test"
     version   = "v1.0"
     artifact {
       type = "Helm4"
@@ -339,15 +342,15 @@ Helm4 chart from a Helm repository with a values file
 resource "rafay_addon" "helm4_helm_repository_with_values" {
   metadata {
     name    = "helm4-helm-repo-values-addon"
-    project = "terraform"
+    project = "project-name"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm-repo"
+        repository    = "default-bitnami"
         chart_name    = "nginx"
         chart_version = "25.0.16"
         values_paths {
@@ -373,16 +376,16 @@ Helm4 chart from Git without a values file
 resource "rafay_addon" "helm4_git_repository_without_values" {
   metadata {
     name    = "helm4-git-defaults-addon"
-    project = "terraform"
+    project = "test-project-name"
   }
   spec {
-    namespace     = "tfdemonamespace1"
+    namespace     = "test-namespace"
     version       = "v1.0"
     version_state = "active"
     artifact {
       type = "Helm4"
       artifact {
-        repository = "git-helm-charts-repo"
+        repository = "git-repository-name"
         revision   = "main"
         chart_path {
           name = "relative/path/to/chart.tgz"
@@ -408,10 +411,10 @@ Helm4 chart from a catalog without a values file
 resource "rafay_addon" "helm4_catalog_without_values" {
   metadata {
     name    = "helm4-catalog-defaults-addon"
-    project = "terraform"
+    project = "defaultproject"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "tf-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"

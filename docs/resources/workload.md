@@ -248,13 +248,13 @@ Create a Helm4 workload by uploading a chart.
 resource "rafay_workload" "helm4_upload" {
   metadata {
     name    = "helm4-upload-workload"
-    project = "terraform"
+    project = "test-project"
   }
   spec {
-    namespace = "test-workload-helm4-upload"
+    namespace = "helm4-test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-1"
+      selector = "environment=dev"
     }
     artifact {
       type = "Helm4"
@@ -292,15 +292,15 @@ resource "rafay_workload" "helm4_helm_repository" {
     project = "terraform"
   }
   spec {
-    namespace = "test-workload-helm4-repository"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-1"
+      selector = "rafay.dev/clusterName in (cluster-1,cluster2,cluster3)"
     }
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm-repo"
+        repository    = "default-bitnami"
         chart_name    = "nginx"
         chart_version = "25.0.16"
       }
@@ -322,10 +322,10 @@ Create a Helm4 workload from a Git repository.
 resource "rafay_workload" "helm4_git_repository" {
   metadata {
     name    = "helm4-git-repository-workload"
-    project = "terraform"
+    project = "test-project"
   }
   spec {
-    namespace = "test-workload-helm4-git"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
@@ -337,17 +337,13 @@ resource "rafay_workload" "helm4_git_repository" {
     artifact {
       type = "Helm4"
       artifact {
-        repository = "git-helm-charts-repo"
+        repository = "git-repository-name"
         revision   = "main"
         chart_path {
           name = "relative/path/to/chart.tgz"
         }
-        values_ref {
-          repository = "git-helm-values-repo"
-          revision   = "main"
-          values_paths {
-            name = "relative/path/to/values.yaml"
-          }
+        values_paths {
+          name = "relative/path/to/values.yaml"
         }
       }
       options {
@@ -368,13 +364,13 @@ Create a Helm4 workload from a catalog.
 resource "rafay_workload" "helm4_catalog" {
   metadata {
     name    = "helm4-catalog-workload"
-    project = "terraform"
+    project = "test-project"
   }
   spec {
-    namespace = "test-workload-helm4-catalog"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "environment=testing"
+      selector = "rafay.dev/clusterName=cluster-name"
     }
     artifact {
       type = "Helm4"
@@ -383,7 +379,7 @@ resource "rafay_workload" "helm4_catalog" {
         chart_name    = "nginx"
         chart_version = "15.14.0"
         values_ref {
-          repository = "git-helm-values-repo"
+          repository = "git-repository-name"
           revision   = "main"
           values_paths {
             name = "relative/path/to/values.yaml"
@@ -408,13 +404,13 @@ Create a Helm4 workload from an uploaded chart without a values file.
 resource "rafay_workload" "helm4_upload_without_values" {
   metadata {
     name    = "helm4-upload-defaults-workload"
-    project = "terraform"
+    project = "test-project"
   }
   spec {
-    namespace = "test-workload-helm4-upload-defaults"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
-      selector = "rafay.dev/clusterName=cluster-1"
+      selector = "rafay.dev/clusterName=cluster-name"
     }
     artifact {
       type = "Helm4"
@@ -441,10 +437,10 @@ Create a Helm4 workload from a Helm repository with a values file.
 resource "rafay_workload" "helm4_helm_repository_with_values" {
   metadata {
     name    = "helm4-helm-repo-values-workload"
-    project = "terraform"
+    project = "test-project"
   }
   spec {
-    namespace = "test-workload-helm4-repository-values"
+    namespace = "test-namespace"
     version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
@@ -452,7 +448,7 @@ resource "rafay_workload" "helm4_helm_repository_with_values" {
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm-repo"
+        repository    = "default-bitnami"
         chart_name    = "nginx"
         chart_version = "25.0.16"
         values_paths {
@@ -477,10 +473,10 @@ Create a Helm4 workload from Git without a values file, place it using a selecto
 resource "rafay_workload" "helm4_git_defaults_labels_drift" {
   metadata {
     name    = "helm4-git-labels-drift-workload"
-    project = "terraform"
+    project = "defaultproject"
   }
   spec {
-    namespace = "test-workload-helm4-git-labels"
+    namespace = "tf-namespace"
     version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
@@ -493,7 +489,7 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
     artifact {
       type = "Helm4"
       artifact {
-        repository = "git-helm-charts-repo"
+        repository = "git-repository-name"
         revision   = "main"
         chart_path {
           name = "relative/path/to/chart.tgz"
@@ -501,7 +497,7 @@ resource "rafay_workload" "helm4_git_defaults_labels_drift" {
       }
       options {
         wait_strategy = "legacy"
-        timeout       = "10m0s"
+        timeout       = "2m0s"
       }
     }
   }

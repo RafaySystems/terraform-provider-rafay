@@ -126,8 +126,8 @@ resource "rafay_workflow_handler" "workflow_handler_function" {
       timeout_seconds = 100
       max_retry_count = 3
       function {
-        name  = "example-function"
-        image = "my-registry.io/example-function:latest"
+        name         = "example-function"
+        image        = "my-registry.io/example-function:latest"
         skip_build {
           value = true
         }
@@ -151,8 +151,8 @@ resource "rafay_workflow_handler" "workflow_handler_function" {
           resource_metrics {
             name = "cpu"
             target {
-              type                = "Utilization"
-              average_utilization = 80
+              type                 = "Utilization"
+              average_utilization  = 80
             }
           }
           resource_metrics {

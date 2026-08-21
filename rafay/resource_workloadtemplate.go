@@ -35,6 +35,7 @@ func resourceWorkloadTemplate() *schema.Resource {
 		ReadContext:   resourceWorkloadTemplateRead,
 		UpdateContext: resourceWorkloadTemplateUpdate,
 		DeleteContext: resourceWorkloadTemplateDelete,
+		CustomizeDiff: resourceWorkloadTemplateCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -45,6 +46,21 @@ func resourceWorkloadTemplate() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        modSchema,
 	}
+}
+
+func resourceWorkloadTemplateCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
 }
 
 func resourceWorkloadTemplateCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -338,10 +354,38 @@ func expandWorkloadTemplateSpec(p []interface{}) (*appspb.WorkloadTemplateSpec, 
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		obj.Sharing = expandSharingSpec(v)
 	}
 
 	return obj, nil
+}
+
+func sharingProjectsSetWhenDisabled(p []interface{}) bool {
+	if len(p) == 0 || p[0] == nil {
+		return false
+	}
+
+	in, ok := p[0].(map[string]interface{})
+	if !ok {
+		return false
+	}
+
+	enabled, _ := in["enabled"].(bool)
+	if enabled {
+		return false
+	}
+
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		return true
+	}
+	if v, ok := in["projects"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		return true
+	}
+
+	return false
 }
 
 // Flatteners

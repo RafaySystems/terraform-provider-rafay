@@ -900,6 +900,7 @@ func flattenGKEV3NodeSecurity(in *infrapb.GkeNodeSecurity, p []interface{}) []in
 
 	obj["enable_secure_boot"] = in.EnableSecureBoot
 	obj["enable_integrity_monitoring"] = in.EnableIntegrityMonitoring
+	obj["workload_metadata_mode"] = in.WorkloadMetadataMode
 
 	return []interface{}{obj}
 }

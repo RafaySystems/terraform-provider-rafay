@@ -24,6 +24,7 @@ func resourceResourceTemplate() *schema.Resource {
 		ReadContext:   resourceTemplateRead,
 		UpdateContext: resourceTemplateUpdate,
 		DeleteContext: resourceTemplateDelete,
+		CustomizeDiff: resourceResourceTemplateCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceResourceTemplateImport,
 		},
@@ -193,6 +194,21 @@ func expandResourceTemplate(in *schema.ResourceData) (*eaaspb.ResourceTemplate, 
 	return obj, nil
 }
 
+func resourceResourceTemplateCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandResourceTemplateSpec(p []any) (*eaaspb.ResourceTemplateSpec, error) {
 	log.Println("expand resource template spec")
 	spec := &eaaspb.ResourceTemplateSpec{}
@@ -250,6 +266,9 @@ func expandResourceTemplateSpec(p []any) (*eaaspb.ResourceTemplateSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		spec.Sharing = expandSharingSpec(v)
 	}
 

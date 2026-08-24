@@ -24,6 +24,7 @@ func resourceStaticResource() *schema.Resource {
 		ReadContext:   resourceStaticResourceRead,
 		UpdateContext: resourceStaticResourceUpdate,
 		DeleteContext: resourceStaticResourceDelete,
+		CustomizeDiff: resourceStaticResourceCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceStaticResourceImport,
 		},
@@ -216,6 +217,21 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 	return obj, nil
 }
 
+func resourceStaticResourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandResourceSpec(p []any) (*eaaspb.ResourceSpec, error) {
 	log.Println("expand resource spec")
 	spec := &eaaspb.ResourceSpec{}
@@ -230,6 +246,9 @@ func expandResourceSpec(p []any) (*eaaspb.ResourceSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		spec.Sharing = expandSharingSpec(v)
 	}
 

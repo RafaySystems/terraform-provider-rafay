@@ -28,6 +28,7 @@ func resourceNamespaceNetworkPolicy() *schema.Resource {
 		ReadContext:   resourceNamespaceNetworkPolicyRead,
 		UpdateContext: resourceNamespaceNetworkPolicyUpdate,
 		DeleteContext: resourceNamespaceNetworkPolicyDelete,
+		CustomizeDiff: resourceNamespaceNetworkPolicyCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -227,6 +228,21 @@ func expandNamespaceNetworkPolicy(in *schema.ResourceData) (*securitypb.Namespac
 	return obj, nil
 }
 
+func resourceNamespaceNetworkPolicyCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandNamespaceNetworkPolicySpec(p []interface{}) (*securitypb.NamespaceNetworkPolicySpec, error) {
 	obj := &securitypb.NamespaceNetworkPolicySpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -240,6 +256,9 @@ func expandNamespaceNetworkPolicySpec(p []interface{}) (*securitypb.NamespaceNet
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		obj.Sharing = expandSharingSpec(v)
 	}
 

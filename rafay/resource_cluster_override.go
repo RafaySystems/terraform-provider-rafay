@@ -38,6 +38,7 @@ func resourceClusterOverride() *schema.Resource {
 		ReadContext:   resourceClusterOverrideRead,
 		UpdateContext: resourceClusterOverrideUpdate,
 		DeleteContext: resourceClusterOverrideDelete,
+		CustomizeDiff: resourceClusterOverrideCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceCluseroverrideImport,
 		},
@@ -484,6 +485,21 @@ func expandOverride(in *schema.ResourceData) (*clusterOverrideYamlConfig, error)
 	return obj, nil
 }
 
+func resourceClusterOverrideCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 	obj := models.ClusterOverrideSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -531,6 +547,9 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return obj, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		sharingSpec := expandSharingSpec(v)
 		projs := []*models.ProjectMeta{}
 		for _, project := range sharingSpec.Projects {

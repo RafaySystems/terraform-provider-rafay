@@ -28,6 +28,7 @@ func resourceOPAPolicy() *schema.Resource {
 		ReadContext:   resourceOPAPolicyRead,
 		UpdateContext: resourceOPAPolicyUpdate,
 		DeleteContext: resourceOPAPolicyDelete,
+		CustomizeDiff: resourceOPAPolicyCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceOPAPolicyImport,
 		},
@@ -230,6 +231,21 @@ func expandOPAPolicy(in *schema.ResourceData) (*opapb.OPAPolicy, error) {
 	return obj, nil
 }
 
+func resourceOPAPolicyCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandOPAPolicySpec(p []interface{}) (*opapb.OPAPolicySpec, error) {
 	obj := &opapb.OPAPolicySpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -239,6 +255,9 @@ func expandOPAPolicySpec(p []interface{}) (*opapb.OPAPolicySpec, error) {
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		obj.Sharing = expandSharingSpec(v)
 	}
 

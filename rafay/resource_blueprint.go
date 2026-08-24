@@ -52,6 +52,7 @@ func ResourceBluePrint() *schema.Resource {
 		ReadContext:   resourceBluePrintRead,
 		UpdateContext: resourceBluePrintUpdate,
 		DeleteContext: resourceBluePrintDelete,
+		CustomizeDiff: resourceBlueprintCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: ResourceBluePrintImport,
 		},
@@ -318,6 +319,21 @@ func expandBluePrint(in *schema.ResourceData) (*infrapb.Blueprint, error) {
 	return obj, nil
 }
 
+func resourceBlueprintCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	var err error
 	obj := &infrapb.BlueprintSpec{}
@@ -363,6 +379,9 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		obj.Sharing = expandSharingSpec(v)
 	}
 

@@ -28,6 +28,7 @@ func resourceClusterNetworkPolicyRule() *schema.Resource {
 		ReadContext:   resourceClusterNetworkPolicyRuleRead,
 		UpdateContext: resourceClusterNetworkPolicyRuleUpdate,
 		DeleteContext: resourceClusterNetworkPolicyRuleDelete,
+		CustomizeDiff: resourceClusterNetworkPolicyRuleCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -227,6 +228,21 @@ func expandClusterNetworkPolicyRule(in *schema.ResourceData) (*securitypb.Cluste
 	return obj, nil
 }
 
+func resourceClusterNetworkPolicyRuleCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandClusterNetworkPolicyRuleSpec(p []interface{}) (*securitypb.ClusterNetworkPolicyRuleSpec, error) {
 	obj := &securitypb.ClusterNetworkPolicyRuleSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -236,6 +252,9 @@ func expandClusterNetworkPolicyRuleSpec(p []interface{}) (*securitypb.ClusterNet
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		obj.Sharing = expandSharingSpec(v)
 	}
 

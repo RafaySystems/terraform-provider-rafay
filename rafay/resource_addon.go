@@ -30,6 +30,7 @@ func ResourceAddon() *schema.Resource {
 		ReadContext:   resourceAddonRead,
 		UpdateContext: resourceAddonUpdate,
 		DeleteContext: resourceAddonDelete,
+		CustomizeDiff: resourceAddonCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceAddonImport,
 		},
@@ -278,6 +279,21 @@ func expandAddon(in *schema.ResourceData) (*infrapb.Addon, error) {
 	return obj, nil
 }
 
+func resourceAddonCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 	obj := &infrapb.AddonSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -316,6 +332,9 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 		obj.Artifact = objArtifact
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		obj.Sharing = expandSharingSpec(v)
 	}
 

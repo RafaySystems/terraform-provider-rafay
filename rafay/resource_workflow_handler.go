@@ -29,6 +29,7 @@ func resourceWorkflowHandler() *schema.Resource {
 		ReadContext:   resourceWorkflowHandlerRead,
 		UpdateContext: resourceWorkflowHandlerUpdate,
 		DeleteContext: resourceWorkflowHandlerDelete,
+		CustomizeDiff: resourceWorkflowHandlerCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceWorkflowHandlerImport,
 		},
@@ -219,6 +220,21 @@ func expandWorkflowHandler(in *schema.ResourceData) (*eaaspb.WorkflowHandler, er
 	return obj, nil
 }
 
+func resourceWorkflowHandlerCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	if sharingProjectsSetWhenDisabled(sharing) {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	return nil
+}
+
 func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 	log.Println("expand workflow handler spec")
 	spec := &eaaspb.WorkflowHandlerSpec{}
@@ -233,6 +249,9 @@ func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
+		if sharingProjectsSetWhenDisabled(v) {
+			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		}
 		spec.Sharing = expandSharingSpec(v)
 	}
 

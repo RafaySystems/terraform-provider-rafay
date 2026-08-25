@@ -48,11 +48,14 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	if in.MaxPodsPerNode != 0 {
 		v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
 	} else {
-		// hack: API can not differenciate nil and zero value of max pods per node. This is to avoid unnecessary diffs.
+		// API cannot distinguish unset vs zero for MaxPodsPerNode (plain int).
+		// After RC-51061 removed the schema default of 0, writing Int64Value(0)
+		// into null state caused permanent day-2 drift: max_pods_per_node = 0 -> null.
+		// Prefer prior state when set; otherwise keep null (RC-53416 / RC-49867).
 		if !state.IsNull() && !state.MaxPodsPerNode.IsNull() {
 			v.MaxPodsPerNode = state.MaxPodsPerNode
 		} else {
-			v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+			v.MaxPodsPerNode = types.Int64Null()
 		}
 	}
 

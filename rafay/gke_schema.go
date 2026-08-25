@@ -110,6 +110,14 @@ func gkeFeaturesSchema() *schema.Schema {
 	}
 }
 
+func capgCapiVersionSchema(description string) *schema.Schema {
+	return &schema.Schema{
+		Description: description,
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
+}
+
 func GKEClusterV3Schema() map[string]*schema.Schema {
 	spec := resource.ClusterSchema.Schema["spec"].Elem.(*schema.Resource)
 	config := spec.Schema["config"].Elem.(*schema.Resource)
@@ -130,6 +138,16 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 	resourceLabels := config.Schema["resource_labels"]
 	releaseChannel := config.Schema["release_channel"]
 	maintenancePolicy := config.Schema["maintenance_policy"]
+	capgVersion := capgCapiVersionSchema(
+		"Cluster API Provider GCP controller version deployed on the workload cluster (e.g., \"v1.1.1-gke.16\").")
+	capiVersion := capgCapiVersionSchema(
+		"Cluster API core controller version deployed on the workload cluster (e.g., \"v1.9.4\").")
+	if v, ok := config.Schema["capg_version"]; ok && v != nil {
+		capgVersion = v
+	}
+	if v, ok := config.Schema["capi_version"]; ok && v != nil {
+		capiVersion = v
+	}
 
 	systemComponentsPlacement := resource.ClusterSchema.Schema["spec"].Elem.(*schema.Resource).Schema["system_components_placement"]
 
@@ -174,6 +192,8 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 								"resource_labels":        resourceLabels,
 								"release_channel":        releaseChannel,
 								"maintenance_policy":     maintenancePolicy,
+								"capg_version":           capgVersion,
+								"capi_version":           capiVersion,
 							},
 						},
 					},

@@ -24,7 +24,7 @@ func resourceConfigContext() *schema.Resource {
 		ReadContext:   resourceConfigContextRead,
 		UpdateContext: resourceConfigContextUpdate,
 		DeleteContext: resourceConfigContextDelete,
-		CustomizeDiff: resourceConfigContextCustomizeDiff,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceConfigContextImport,
 		},
@@ -217,21 +217,6 @@ func expandConfigContext(in *schema.ResourceData) (*eaaspb.ConfigContext, error)
 	return obj, nil
 }
 
-func resourceConfigContextCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	v, ok := d.GetOk("spec.0.sharing")
-	if !ok {
-		return nil
-	}
-	sharing, ok := v.([]interface{})
-	if !ok {
-		return nil
-	}
-	if sharingProjectsSetWhenDisabled(sharing) {
-		return fmt.Errorf("projects cannot be set when sharing is disabled")
-	}
-	return nil
-}
-
 func expandConfigContextSpec(p []any) (*eaaspb.ConfigContextSpec, error) {
 	log.Println("expand config context spec")
 	spec := &eaaspb.ConfigContextSpec{}
@@ -254,8 +239,8 @@ func expandConfigContextSpec(p []any) (*eaaspb.ConfigContextSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		if sharingProjectsSetWhenDisabled(v) {
-			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+			return nil, err
 		}
 		spec.Sharing = expandSharingSpec(v)
 	}

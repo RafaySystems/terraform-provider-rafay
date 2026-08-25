@@ -30,10 +30,10 @@ type repositorySpec struct {
 	Options     *integrationspb.RepositoryOptions `protobuf:"bytes,4,opt,name=options,proto3" json:"options,omitempty"`
 	Secret      *commonpb.File                    `protobuf:"bytes,5,opt,name=secret,proto3" json:"secret,omitempty"`
 	Credentials struct {
-		Username   string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-		Password   string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-		PrivateKey string `protobuf:"bytes,1,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
-		AppID      string `protobuf:"bytes,3,opt,name=appID,proto3" json:"appID,omitempty"`
+		Username       string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+		Password       string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+		PrivateKey     string `protobuf:"bytes,1,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
+		AppID          string `protobuf:"bytes,3,opt,name=appID,proto3" json:"appID,omitempty"`
 		InstallationID string `protobuf:"bytes,4,opt,name=installationID,proto3" json:"installationID,omitempty"`
 	} `json:"credentials,omitempty"`
 	Sharing *commonpb.SharingSpec `protobuf:"bytes,5,opt,name=sharing,proto3" json:"sharing,omitempty"`
@@ -51,7 +51,7 @@ func resourceRepositories() *schema.Resource {
 		ReadContext:   resourceRepositoriesRead,
 		UpdateContext: resourceRepositoriesUpdate,
 		DeleteContext: resourceRepositoriesDelete,
-		CustomizeDiff: resourceRepositoriesCustomizeDiff,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -286,21 +286,6 @@ func expandRepository(in *schema.ResourceData) (*integrationspb.Repository, erro
 	return obj, nil
 }
 
-func resourceRepositoriesCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	v, ok := d.GetOk("spec.0.sharing")
-	if !ok {
-		return nil
-	}
-	sharing, ok := v.([]interface{})
-	if !ok {
-		return nil
-	}
-	if sharingProjectsSetWhenDisabled(sharing) {
-		return fmt.Errorf("projects cannot be set when sharing is disabled")
-	}
-	return nil
-}
-
 func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, error) {
 	repoSpec := repositorySpec{}
 	obj := integrationspb.RepositorySpec{}
@@ -363,8 +348,8 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if sharingProjectsSetWhenDisabled(v) {
-			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+			return nil, err
 		}
 		repoSpec.Sharing = expandSharingSpec(v)
 	}

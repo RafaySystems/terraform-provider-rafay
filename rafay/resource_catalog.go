@@ -27,7 +27,7 @@ func resourceCatalog() *schema.Resource {
 		ReadContext:   resourceCatalogRead,
 		UpdateContext: resourceCatalogUpdate,
 		DeleteContext: resourceCatalogDelete,
-		CustomizeDiff: resourceCatalogCustomizeDiff,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -221,21 +221,6 @@ func expandCatalog(in *schema.ResourceData) (*appspb.Catalog, error) {
 	return obj, nil
 }
 
-func resourceCatalogCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	v, ok := d.GetOk("spec.0.sharing")
-	if !ok {
-		return nil
-	}
-	sharing, ok := v.([]interface{})
-	if !ok {
-		return nil
-	}
-	if sharingProjectsSetWhenDisabled(sharing) {
-		return fmt.Errorf("projects cannot be set when sharing is disabled")
-	}
-	return nil
-}
-
 func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	log.Println("expand catalog spec")
 	obj := &appspb.CatalogSpec{}
@@ -256,8 +241,8 @@ func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok {
-		if sharingProjectsSetWhenDisabled(v) {
-			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+			return nil, err
 		}
 		obj.Sharing = expandSharingSpec(v)
 	}

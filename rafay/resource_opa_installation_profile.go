@@ -28,7 +28,7 @@ func resourceOPAInstallationProfile() *schema.Resource {
 		ReadContext:   resourceOPAInstallationProfileRead,
 		UpdateContext: resourceOPAInstallationProfileUpdate,
 		DeleteContext: resourceOPAInstallationProfileDelete,
-		CustomizeDiff: resourceOPAInstallationProfileCustomizeDiff,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceOPAInstallationProfileImport,
 		},
@@ -217,21 +217,6 @@ func expandOPAInstallationProfile(in *schema.ResourceData) (*opapb.OPAProfile, e
 	return obj, nil
 }
 
-func resourceOPAInstallationProfileCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	v, ok := d.GetOk("spec.0.sharing")
-	if !ok {
-		return nil
-	}
-	sharing, ok := v.([]interface{})
-	if !ok {
-		return nil
-	}
-	if sharingProjectsSetWhenDisabled(sharing) {
-		return fmt.Errorf("projects cannot be set when sharing is disabled")
-	}
-	return nil
-}
-
 func expandOPAInstallationProfileSpec(p []interface{}) (*opapb.OPAProfileSpec, error) {
 	obj := &opapb.OPAProfileSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -257,8 +242,8 @@ func expandOPAInstallationProfileSpec(p []interface{}) (*opapb.OPAProfileSpec, e
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if sharingProjectsSetWhenDisabled(v) {
-			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+			return nil, err
 		}
 		obj.Sharing = expandSharingSpec(v)
 	}

@@ -72,7 +72,7 @@ func resourcePipeline() *schema.Resource {
 		ReadContext:   resourcePipelineRead,
 		UpdateContext: resourcePipelineUpdate,
 		DeleteContext: resourcePipelineDelete,
-		CustomizeDiff: resourcePipelineCustomizeDiff,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourcePipelineImport,
 		},
@@ -526,21 +526,6 @@ func expandPipeline(in *schema.ResourceData) (*gitopspb.Pipeline, error) {
 	return obj, nil
 }
 
-func resourcePipelineCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	v, ok := d.GetOk("spec.0.sharing")
-	if !ok {
-		return nil
-	}
-	sharing, ok := v.([]interface{})
-	if !ok {
-		return nil
-	}
-	if sharingProjectsSetWhenDisabled(sharing) {
-		return fmt.Errorf("projects cannot be set when sharing is disabled")
-	}
-	return nil
-}
-
 func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
 	var err error
 	obj := &gitopspb.PipelineSpec{}
@@ -568,8 +553,8 @@ func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if sharingProjectsSetWhenDisabled(v) {
-			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+			return nil, err
 		}
 		obj.Sharing = expandSharingSpec(v)
 	}

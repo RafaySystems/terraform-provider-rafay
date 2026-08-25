@@ -27,7 +27,7 @@ func resourceNetworkPolicyProfile() *schema.Resource {
 		ReadContext:   resourceNetworkPolicyProfileRead,
 		UpdateContext: resourceNetworkPolicyProfileUpdate,
 		DeleteContext: resourceNetworkPolicyProfileDelete,
-		CustomizeDiff: resourceNetworkPolicyProfileCustomizeDiff,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -222,21 +222,6 @@ func expandNetworkPolicyProfile(in *schema.ResourceData) (*securitypb.NetworkPol
 	return obj, nil
 }
 
-func resourceNetworkPolicyProfileCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	v, ok := d.GetOk("spec.0.sharing")
-	if !ok {
-		return nil
-	}
-	sharing, ok := v.([]interface{})
-	if !ok {
-		return nil
-	}
-	if sharingProjectsSetWhenDisabled(sharing) {
-		return fmt.Errorf("projects cannot be set when sharing is disabled")
-	}
-	return nil
-}
-
 func expandNetworkPolicyProfileSpec(p []interface{}) (*securitypb.NetworkPolicyProfileSpec, error) {
 	obj := &securitypb.NetworkPolicyProfileSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -246,8 +231,8 @@ func expandNetworkPolicyProfileSpec(p []interface{}) (*securitypb.NetworkPolicyP
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if sharingProjectsSetWhenDisabled(v) {
-			return nil, fmt.Errorf("projects cannot be set when sharing is disabled")
+		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+			return nil, err
 		}
 		obj.Sharing = expandSharingSpec(v)
 	}

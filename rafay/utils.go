@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -791,6 +792,45 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 
 	log.Println("expandSharingSpec obj", obj)
 	return &obj
+}
+
+// errIfProjectsSetWhenSharingDisabled returns an error when sharing.projects
+// is set while sharing.enabled is false.
+func errIfProjectsSetWhenSharingDisabled(p []interface{}) error {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	in, ok := p[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	enabled, _ := in["enabled"].(bool)
+	if enabled {
+		return nil
+	}
+
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+	if v, ok := in["projects"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		return fmt.Errorf("projects cannot be set when sharing is disabled")
+	}
+
+	return nil
+}
+
+func sharingCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	v, ok := d.GetOk("spec.0.sharing")
+	if !ok {
+		return nil
+	}
+	sharing, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	return errIfProjectsSetWhenSharingDisabled(sharing)
 }
 
 func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {

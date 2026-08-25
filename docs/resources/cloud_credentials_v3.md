@@ -82,13 +82,10 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ## Argument Reference
 
 ---
-***Required***
+***Optional***
 
 - `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
 - `spec` - (Block List, Max: 1) Defines the characteristics for the resource. (See [below for nested schema](#nestedblock--spec))
-
-***Optional***
-
 - `timeouts` - (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 ***Read-Only***
@@ -100,16 +97,34 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
-***Required***
-
-- `name` - (String) The name of the resource.
-- `project` - (String) The name of the project.
-
 ***Optional***
 
 - `annotations` - (Map of String) The annotations of the resource.
+- `created_by` - (Block List, Max: 1) The user who created this resource. (See [below for nested schema](#nestedblock--metadata--created_by))
 - `description` - (String) The description of the resource.
+- `display_name` - (String) The display name of the resource.
 - `labels` - (Map of String) The labels of the resource.
+- `modified_by` - (Block List, Max: 1) The user who last modified this resource. (See [below for nested schema](#nestedblock--metadata--modified_by))
+- `name` - (String) The name of the resource.
+- `project` - (String) The name of the project.
+
+<a id="nestedblock--metadata--created_by"></a>
+### Nested Schema for `metadata.created_by`
+
+***Optional***
+
+- `id` - (String) The ID of the person.
+- `is_sso_user` - (Boolean) Whether the person is logged in using SSO.
+- `username` - (String) The username of the person.
+
+<a id="nestedblock--metadata--modified_by"></a>
+### Nested Schema for `metadata.modified_by`
+
+***Optional***
+
+- `id` - (String) The ID of the person.
+- `is_sso_user` - (Boolean) Whether the person is logged in using SSO.
+- `username` - (String) The username of the person.
 
 
 ---
@@ -117,28 +132,24 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
-***Required***
-
-- `credentials` - (Block List, Max: 1) Contains data for the credentials. (See [below for nested schema](#nestedblock--spec--credentials))
-- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `mks`.
-- `type` - (String) The type of credentials. The supported values is: `ClusterProvisioning` and `DataBackup`.
-
 ***Optional***
 
-- `sharing` - (Boolean) - Enables sharing the cloud credentials. By default, sharing is disabled (set to false), so there's no need to specify or provide this setting unless you want to enable sharing. (See [below for nested schema](#nestedblock--spec--sharing))
+- `credentials` - (Block List, Max: 1) Contains data for the credentials. (See [below for nested schema](#nestedblock--spec--credentials))
+- `provider` - (String) - The cloud provider. Supported values are: `aws`, `azure`, `gcp`, `mks`, `minio`, and `vsphere`.
+- `secret` - (Block List, Max: 1) Contains file data (for example, a mounted secret file) associated with the credentials. (See [below for nested schema](#nestedblock--spec--secret))
+- `sharing` - (Block List, Max: 1) Enables sharing the cloud credentials. By default, sharing is disabled (set to false), so there's no need to specify or provide this setting unless you want to enable sharing. (See [below for nested schema](#nestedblock--spec--sharing))
+- `type` - (String) The type of credentials. The supported values is: `ClusterProvisioning` and `DataBackup`.
 
 
 <a id="nestedblock--spec--credentials"></a>
 ### Nested Schema for `spec.credentials`
 
-***Required***
-
 ***Required for AWS*** 
 - `type` - (String) The type of AWS credentials access. The supported value is: `AccessKey`, `Role`
 
 ***Required for AWS accesskey***
-- `access_id` - (String) The AWS access id for the credentials.
-- `secret_key` - (String) The AWS secret key for the credentials.
+- `access_id` - (String) The AWS access id for the credentials. This field is also used for the MinIO access key ID when `provider` is `minio`.
+- `secret_key` - (String) The AWS secret key for the credentials. This field is also used for the MinIO secret access key when `provider` is `minio`.
 
 ***Optional for AWS accesskey***
 
@@ -163,6 +174,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 
 ***Required for MKS***
 
+- `type` - (String) The type of credentials access. Set to `SSH_REMOTE` for MKS.
 - `port` - (String) The ssh port.
 - `username` - (String) The ssh username to access the node.
 - `private_key` - (String) The ssh key to access the node.
@@ -172,10 +184,55 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 
 - `passphrase` - (String) The ssh key passphrase.
 
+***Required for vSphere***
+
+- `vsphere_server` - (String) The vCenter server URL or IP address (for example, `vcenter.example.com`).
+- `gateway_id` - (String) The ID of the Rafay gateway used for vSphere connectivity.
+- `username` - (String) The username used to authenticate to vSphere. (This is the same field documented under "Required for MKS" above.)
+- `password` - (String) The vSphere password for authentication.
+
+<a id="nestedblock--spec--secret"></a>
+### Nested Schema for `spec.secret`
+
+***Optional***
+
+- `data` - (String, Sensitive) The base64 encoded contents of the file.
+- `mount_path` - (String) The mount path of the file.
+- `name` - (String) The name or relative path of the artifact.
+- `options` - (Block List, Max: 1) Options for the file. (See [below for nested schema](#nestedblock--spec--secret--options))
+- `sensitive` - (Boolean) Deprecated: use `options.sensitive` instead. The data is encrypted if `sensitive` is set to `true`.
+
+<a id="nestedblock--spec--secret--options"></a>
+### Nested Schema for `spec.secret.options`
+
+***Optional***
+
+- `description` - (String) The description of the file.
+- `display_metadata` - (String) Display metadata used to render the file on the UI. (Computed)
+- `override` - (Block List, Max: 1) Override options for the file. (See [below for nested schema](#nestedblock--spec--secret--options--override))
+- `required` - (Boolean) Determines whether the file is required / mandatory.
+- `schema` - (Block List, Max: 1) Defines the JSON schema and UI schema conforming to react-jsonschema-form library norms. (See [below for nested schema](#nestedblock--spec--secret--options--schema))
+- `sensitive` - (Boolean) The data is encrypted if `sensitive` is set to `true`.
+
+<a id="nestedblock--spec--secret--options--override"></a>
+### Nested Schema for `spec.secret.options.override`
+
+***Optional***
+
+- `type` - (String) Specifies the type of override this file supports. Defaults to `unspecified`.
+
+<a id="nestedblock--spec--secret--options--schema"></a>
+### Nested Schema for `spec.secret.options.schema`
+
+***Optional***
+
+- `jsonschema` - (String) The JSON Schema definition of the given variable, conforming to react-jsonschema-form library norms.
+- `uischema` - (String) The UI Schema definition of the given variable, conforming to react-jsonschema-form library norms.
+
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`
 
-***Required***
+***Optional***
 
 - `enabled` - (Boolean) Enables sharing the resource.
 - `projects` - (Block List) The list of projects this resource is shared to. (See [below for nested schema](#nestedblock--spec--sharing--projects))
@@ -183,7 +240,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Required***
+***Optional***
 
 - `name` - (String) The name of the project.
 

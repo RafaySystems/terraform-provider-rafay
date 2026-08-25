@@ -102,6 +102,8 @@ resource "rafay_cloud_credential" "tfcredential5" {
 - `accesskey` - (String) The AWS access key. Get your AWS access and secret keys from the AWS management console. (See the [AWS documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for more information)
 - `secretkey` (String) The AWS secret key. Get your AWS access and secret keys from the AWS management console. (See the [AWS documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for more information)
 
+~> **Note** These same `accesskey` and `secretkey` fields are also required when `providertype` is `MINIO`.
+
 ***Required for AWS rolearn***
 
 - `externalid` (String) The external ID.

@@ -1039,8 +1039,11 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 ***Required***
 
 - `spec` - (Block List, Max: 1) The specification associated with the cluster, including cluster networking options. (See [below for nested schema](#nestedblock--cluster--spec))
-- `kind` - (String) The type of resource. The supported value is `Cluster`.
 - `metadata` -(Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--cluster--metadata))
+
+***Optional***
+
+- `kind` - (String) The type of resource. The supported value is `Cluster`. Defaults to `Cluster`.
 
 
 <a id="nestedblock--cluster--spec"></a>
@@ -1048,14 +1051,14 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ***Required***
 
-- `blueprint` - (String) The blueprint associated with the cluster. A blueprint defines the configuration and policy. Use blueprints to help standardize cluster configurations. 
-- `blueprint_version` - (String) The blueprint version associated with the cluster. 
 - `cloud_provider` - (String) The cloud credentials provider used to create and manage the cluster. 
-- `cni_provider` - (String) The container network interface (CNI) provider used to specify different network connectivity options for the cluster. 
-- `type` - (String) The cluster type. The supported value is `eks`. 
 
 ***Optional***
 
+- `blueprint` - (String) The blueprint associated with the cluster. A blueprint defines the configuration and policy. Use blueprints to help standardize cluster configurations. Defaults to `default`.
+- `blueprint_version` - (String) The blueprint version associated with the cluster. 
+- `cni_provider` - (String) The container network interface (CNI) provider used to specify different network connectivity options for the cluster. 
+- `type` - (String) The cluster type. The supported value is `eks`. 
 - `proxy_config` - (Map of String) The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy. 
 - `cni_params` - (Block List) The container network interface (CNI) parameters. (See [below for nested schema](#nestedblock--cluster.spec--cni_params))
 - `cross_account_role_arn` - (String) ARN of target cross account role. Use this to create the cluster resource in the target role account.
@@ -1090,6 +1093,15 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 ***Optional***
 
 - `security_groups` - (List of String) The security groups that belong to the CNI. 
+
+
+<a id="nestedblock--cluster--spec--sharing"></a>
+### Nested Schema for `cluster.spec.sharing`
+
+***Optional***
+
+- `enabled` - (Boolean) Whether to enable cluster sharing. Note: If the resource is not shared, set this to `false`.
+- `projects` - (Block List) The projects to share the cluster with. (See [below for nested schema](#nestedblock--cluster--spec--sharing--projects))
 
 
 <a id="nestedblock--cluster--spec--sharing--projects"></a>
@@ -1161,8 +1173,6 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ***Required***
 
-- `apiversion` - (String) The API version. The supported value is `rafay.io/v1alpha5`. 
-- `kind` - (String) The type of resource. The supported value is `ClusterConfig`.
 - `managed_nodegroups` - (Block List) The managed nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups))
 - `metadata` - (Block List, Max: 1) The general information for the cluster. (See [below for nested schema](#nestedblock--cluster_config--metadata))
 - `node_groups` - (Block List) The nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--node_groups))
@@ -1186,10 +1196,13 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 
 ***Optional***
+- `apiversion` - (String) The API version. The supported value is `rafay.io/v1alpha5`. 
+- `kind` - (String) The type of resource. The supported value is `ClusterConfig`.
 - `managed_nodegroups_map` - (Map of Objects) The managed nodegroups map attributes of a cluster. (See [managed_node_groups schema](#nestedblock--cluster_config--managed_nodegroups))
 - `node_groups_map` - (Map of Objects) The nodegroups map attributes of a cluster. (See [node_groups schema](#nestedblock--cluster_config--node_groups))
 
-- `kubernetes_network_config_map` - (Map of Objects) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
+- `kubernetes_network_config` - (Block List, Max: 1) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
+- `identity_providers` - (Block List) The OIDC identity providers to associate with the cluster. (See [below for nested schema](#nestedblock--cluster_config--identity_providers))
 - `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
 - `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
@@ -1213,6 +1226,14 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `service_ipv4_cidr` - (String) The CIDR block to assign Kubernetes pod and service IP addresses from. 
 
 
+<a id="nestedblock--cluster_config--identity_providers"></a>
+### Nested Schema for `cluster_config.identity_providers`
+
+***Optional***
+
+- `type` - (String) Valid variants are: `oidc` - OIDC identity provider.
+
+
 <a id="nestedblock--cluster_config--metadata"></a>
 ### Nested Schema for `cluster_config.metadata`
 
@@ -1220,23 +1241,24 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 - `name` - (String) The name of the EKS cluster. 
 - `region` - (String) The AWS region hosting the EKS cluster. 
-- `version` - (String) The cluster version. The supported values are: `1.18`, `1.19`, `1.20` (default), and `1.21`.
 
 ***Optional***
 
+- `version` - (String) The version of the EKS control plane.
 - `tags` - (Map of String) The AWS resource tags created by the vendor. 
+- `annotations` - (Map of String) A map of annotations to assign to the EKS cluster.
 
 <a id="nestedblock--cluster_config--cloud_watch"></a>
 ### Nested Schema for `cluster_config.cloud_watch`
 
-***Required***
+***Optional***
 
 - `cluster_logging` - (Block List, Max:1) The config parameters related to cluster logging.  (See [below for nested schema](#nestedblock--cluster_config--cloud_watch--cluster_logging))
 
 <a id="nestedblock--cluster_config--cloud_watch--cluster_logging"></a>
 ### Nested Schema for `cluster_config.cloud_watch.cluster_logging`
 
-***Required***
+***Optional***
 
 - `enable_types` - (List of string) Types of logging to enable. Supported values are: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`, `all` and `*`
 - `log_retention_in_days` - (Number) Sets the number of days to retain the logs for. Supported values are: `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, `400`, `545`, `731`, `1827`, and `3653`
@@ -1244,13 +1266,11 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 <a id="nestedblock--cluster_config--fargate_profiles"></a>
 ### Nested Schema for `cluster_config.fargate_profiles`
 
-***Required***
-
-- `name` - (String) The name of the Fargate profile. 
-- `selectors` - (Block List, Min: 1) Defines the rules for selecting the workload to schedule onto Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles--selectors))
-
 ***Optional***
 
+- `name` - (String) The name of the Fargate profile. 
+- `pod_execution_role_arn` - (String) The ARN of the pod execution role to use for pods that match the selectors in the Fargate profile.
+- `selectors` - (Block List) Defines the rules for selecting the workload to schedule onto Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles--selectors))
 - `status` - (String) The current status of the Fargate profile.
 - `tags` - (Map of String) Used to tag the AWS resources. 
 
@@ -1259,7 +1279,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 <a id="nestedblock--cluster_config--fargate_profiles--selectors"></a>
 ### Nested Schema for `cluster_config.fargate_profiles.selectors`
 
-***Required***
+***Optional***
 
 - `labels` - (Map of String) The Kubernetes label selectors used to select the workload.
 - `namespace` - (String) The Kubernetes namespace from which to select workload. 
@@ -1276,6 +1296,9 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `service_role_arn` - (String) The service role ARN of the cluster. 
 - `with_oidc` - (Boolean) Enables the IAM OpenID connect (OIDC) provider as well as the IAM roles for service accounts (IRSA) for the Amazon CNI plugin. 
 - `pod_identity_associations` - (Block List) The pod identity associations to create in the cluster.  (See [below for nested schema](#nestedblock--cluster_config--iam--pod_identity_associations))
+- `fargate_pod_execution_role_arn` - (String) Role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization.
+- `fargate_pod_execution_role_permissions_boundary` - (String) Permissions boundary for the fargate pod execution role.
+- `vpc_resource_controller_policy` - (Boolean) Attaches the IAM policy necessary to run the VPC controller in the control plane.
 
 
 
@@ -1293,18 +1316,20 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Optional*** 
 - `tags` - (Map of String) The AWS tags for the service account.
+- `role_only` - (Boolean) Specify if only the IAM Service Account role should be created without creating/annotating the service account.
+
+***Read-Only***
+
+- `status` - (Block List) The status of the service account. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--status))
 
 
 <a id="nestedblock--cluster_config--iam--service_accounts--metadata"></a>
 ### Nested Schema for `cluster_config.iam.service_accounts.metadata`
 
-***Required***
+***Optional***
 
 - `name` - (String) The name of the service account. 
 - `namespace` - (String) The namespace of the service account. 
-
-***Optional***
-
 - `annotations` - (Map of String) The annotations for the service account. 
 - `labels` - (Map of String) The classless inter-domain routing (CIDR) range from which ClusterIPs are assigned.
 
@@ -1321,6 +1346,13 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
 - `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
 
+<a id="nestedblock--cluster_config--iam--service_accounts--status"></a>
+### Nested Schema for `cluster_config.iam.service_accounts.status`
+
+***Read-Only***
+
+- `role_arn` - (String) The role ARN of the service account.
+
 <a id="nestedblock--cluster_config--iam--pod_idenity_associations"></a>
 ### Nested Schema for `cluster_config.iam.pod_identity_associations`
 
@@ -1329,7 +1361,6 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `permission_policy` - (String) Holds a policy document to attach to the service account in json string format.
 - `permission_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the service account. 
 - `role_arn` - (String) The ARN of the role to attach to the service account.
-- `permission_boundary_arn` - (String) ARN of the permissions boundary to associate
 - `namespace` - (String) The namespace of the service account. 
 - `service_account_name` - (String) The name of the service account
     **Note**: At least `permission_policy`, `permission_policy_arns`, or `role_arn` is required. 
@@ -1338,6 +1369,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `tags` - (Map of String) The AWS tags for the service account.
 - `create_service_account` - (Bool) Enable flag to create service account
 - `role_name` - (String) User defined name for role
+- `permission_boundary_arn` - (String) ARN of the permissions boundary to associate
 - `well_known_policies` - (Block List) Use to attach common IAM policies. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--well_known_policies))
 
 <a id="nestedblock--cluster_config--addons"></a>
@@ -1346,13 +1378,13 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 ***Required***
 
 - `name` - (String) Name of the EKS add-on. The name must match one of the names supported by Rafay. Supported addons: `vpc-cni`, `kube-proxy`, `coredns`, `aws-ebs-csi-driver`, `adot`, `aws-guardduty-agent`, `aws-efs-csi-driver`,`snapshot-controller`,`amazon-cloudwatch-observability`,`aws-mountpoint-s3-csi-driver`
-- `version` - (String) The version of the EKS add-on. The version must match one of the supported versions.
 
 ***Optional***
 
+- `version` - (String) The version of the EKS add-on. The version must match one of the supported versions.
 - `service_account_role_arn` - (String) The Amazon Resource Name (ARN) of an existing IAM role to bind to the add-on's service account. The role must be assigned the IAM permissions required by the add-on. If you don't specify an existing IAM role, then the add-on uses the permissions assigned to the node IAM role. 
 - `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the addon's service account. 
-- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account (Deprecated)
+- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account (Deprecated) (See [below for nested schema](#nestedblock--cluster_config--addons--attach_policy))
 - `attach_policy_v2` - (String)  Holds a policy document in json format to attach to the addon role. Wrap policy inside jsonencode() function.
 - `permissions_boundary` - (String) ARN of the permissions boundary to associate
 - `well_known_policies` - (Block List) Use to attach common IAM policies.
@@ -1360,6 +1392,30 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `configuration_values` - (String) custom configuration values for addons with single JSON string.
 - `use_default_pod_identity_associations` - (Bool) Flag to enable pod identity association by default
 - `pod_identity_associations` - (Block List) Configure pod identity association for the addon (See [below for nested schema](#nestedblock--cluster_config--iam--pod_identity_associations))
+
+<a id="nestedblock--cluster_config--addons--attach_policy"></a>
+### Nested Schema for `cluster_config.addons.attach_policy`
+
+***Optional***
+
+- `version` - (String) Attach policy version.
+- `id` - (String) Attach policy ID.
+- `statement` - (Block List) Attach policy statement. (See [below for nested schema](#nestedblock--cluster_config--addons--attach_policy--statement))
+
+<a id="nestedblock--cluster_config--addons--attach_policy--statement"></a>
+### Nested Schema for `cluster_config.addons.attach_policy.statement`
+
+***Optional***
+
+- `effect` - (String) Attach policy effect.
+- `action` - (List of String) Attach policy action.
+- `resource` - (String) Attach policy resource.
+- `condition` - (String) Attach policy condition.
+- `sid` - (String) Attach policy sid.
+- `not_action` - (List of String) Attach policy not_action.
+- `not_resource` - (List of String) Attach policy not_resource.
+- `principal` - (String) Attach policy principal.
+- `not_principal` - (String) Attach policy not_principal.
 
 <a id="nestedblock--cluster_config--addons_config"></a>
 ### Nested Schema for `cluster_config.addons_config`
@@ -1372,11 +1428,9 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 <a id="nestedblock--cluster_config--auto_mode_config"></a>
 ### Nested Schema for `cluster_config.auto_mode_config`
 
-***Required***
-- `enabled` - (Bool) Set to true to enabled EKS Auto Mode
-
 ***Optional***
 
+- `enabled` - (Bool) Set to true to enabled EKS Auto Mode
 - `node_role_arn` - (String) Role arn to be inherited by the nodepools, pass if you created a role beforehand
 - `node_pools` - (List of Strings) Select any from general-purpose and system. By Default both will be created
 
@@ -1472,12 +1526,9 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 <a id="nestedblock--cluster_config--secrets_encryption"></a>
 ### Nested Schema for `cluster_config.secrets_encryption`
 
-***Required***
-
-- `key_arn` - (String) KMS key ARN. 
-
 ***Optional***
 
+- `key_arn` - (String) KMS key ARN. 
 - `encrypt_existing_secrets` - (Boolean) Set to false to disable encrypting existing secrets. Default is False.
 
 
@@ -1486,34 +1537,28 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
-- `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
-- `instance_type` - (String) The type of instances in the nodegroup. 
-- `max_size` - (Number) The maximum number of instances in the nodegroup. 
-- `min_size` - (Number) The minimum number of instances in the nodegroup. 
 - `name` - (String) The name of the node group. 
-- `volume_iops` - (Number) IOPS of the volume. Value must be in the range of 3000-16000.
-- `volume_throughput`- (Number) Throughput of the volume. Value must be in the range of 125-1000.
-- `volume_size` - (Number) The size of the volume, in gigabytes. 
-- `volume_type` - (String) The volume type for volumes attached to instances in the nodegroup. The supported values are: 
-    - `gp2` - General purpose SSD
-    - `gp3` - (Default) General purpose SSD which can be optimized for high throughput  
-    - `io1` - Provisioned IOPS SSD 
-    - `sc1` - Cold HDD
-    - `st1` - Throughput Optimized HDD
 
 ***Optional***
 
 - `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
 - `availability_zones` - (List of String) Limit nodes to specific AZs. 
 - `bottle_rocket` - (Block List) Configures Bottlerocket nodegroup settings. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--bottle_rocket))
+- `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
 - `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
 - `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
 - `iam` - (Block List) Holds all IAM attributes of a NodeGroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--iam))
 - `instance_name` - (String) For instances in the nodegroup. 
+- `instance_selector` - (Block List) Selects an instance type based on specified resource criteria. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--instance_selector))
+- `instance_type` - (String) The type of instances in the nodegroup. 
 - `instance_types` - (List of String) Specifies a list of instance types.
 - `labels` - (Map of String) The labels on nodes in the nodegroup. 
+- `launch_template` - (Block List) The EC2 launch template to use for the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--launch_template))
 - `max_pods_per_node` - (Number) The maximum pods per node. 
+- `max_size` - (Number) The maximum number of instances in the nodegroup. 
+- `min_size` - (Number) The minimum number of instances in the nodegroup. 
+- `placement` - (Block List) Specifies the placement group for the nodegroup instances. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--placement))
 - `private_networking` - (Boolean) Enables private networking for nodegroup. 
 - `security_groups` - (Block List) Controls security groups for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--security_groups))
 - `spot` - (Boolean) Creates a spot nodegroup. 
@@ -1521,9 +1566,19 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `subnets` - (List of String) Limits the nodes to specific subnets. 
 - `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups). 
 - `taints` - (List) Taints to apply to the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--taints))
+- `update_config` - (Block List) Configures the nodegroup update behavior. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--update_config))
 - `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup. 
+- `volume_iops` - (Number) IOPS of the volume. Value must be in the range of 3000-16000.
 - `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
 - `volume_name` - (String) The name of the volume. 
+- `volume_size` - (Number) The size of the volume, in gigabytes. 
+- `volume_throughput`- (Number) Throughput of the volume. Value must be in the range of 125-1000.
+- `volume_type` - (String) The volume type for volumes attached to instances in the nodegroup. The supported values are: 
+    - `gp2` - General purpose SSD
+    - `gp3` - (Default) General purpose SSD which can be optimized for high throughput  
+    - `io1` - Provisioned IOPS SSD 
+    - `sc1` - Cold HDD
+    - `st1` - Throughput Optimized HDD
 - `node_repair_config` - (Block List) Node repair configuration of the nodeGroup  (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--node_repair_config))
 
 <a id="nestedblock--cluster_config--managed_nodegroups--bottle_rocket"></a>
@@ -1533,6 +1588,39 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 - `enable_admin_container` - (Boolean) Enables the Bottlerocket admin container.
 - `settings` - (String) settings for  Bottlerocket node group. Use `jsonencode()` to pass valid settings configuration in json format. 
+
+<a id="nestedblock--cluster_config--managed_nodegroups--placement"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.placement`
+
+***Optional***
+
+- `group` - (String) The placement group name.
+
+<a id="nestedblock--cluster_config--managed_nodegroups--instance_selector"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.instance_selector`
+
+***Optional***
+
+- `vcpus` - (Number) Specifies the number of vCPUs.
+- `memory` - (String) Specifies the memory. The unit defaults to GiB.
+- `gpus` - (Number) Specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.
+- `cpu_architecture` - (String) CPU Architecture of the EC2 instance type. Valid variants are: `x86_64`, `amd64`, `arm64`.
+
+<a id="nestedblock--cluster_config--managed_nodegroups--launch_template"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.launch_template`
+
+***Optional***
+
+- `id` - (String) The ID of the launch template.
+- `version` - (String) The version of the launch template.
+
+<a id="nestedblock--cluster_config--managed_nodegroups--update_config"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.update_config`
+
+***Optional***
+
+- `max_unavailable` - (Number) The maximum number of nodes unavailable during the update.
+- `max_unavailable_percentage` - (Number) The maximum percentage of nodes unavailable during the update.
 
 <a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config"></a>
 ### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config`
@@ -1566,6 +1654,32 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `instance_profile_arn` - (String) The instance profile for the ARNs. 
 - `instance_role_arn` - (String) The instance role for the ARNs.
 - `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
+- `attach_policy` - (Block List) Holds a policy document to attach to the nodegroup. (Deprecated) (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--iam--attach_policy))
+- `attach_policy_v2` - (String) Holds a policy document to attach to the nodegroup in json string format. Wrap policy inside jsonencode() function.
+
+<a id="nestedblock--cluster_config--managed_nodegroups--iam--attach_policy"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.iam.attach_policy`
+
+***Optional***
+
+- `version` - (String) Attach policy version.
+- `id` - (String) Attach policy ID.
+- `statement` - (Block List) Attach policy statement. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--iam--attach_policy--statement))
+
+<a id="nestedblock--cluster_config--managed_nodegroups--iam--attach_policy--statement"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.iam.attach_policy.statement`
+
+***Optional***
+
+- `effect` - (String) Attach policy effect.
+- `action` - (List of String) Attach policy action.
+- `resource` - (String) Attach policy resource.
+- `condition` - (String) Attach policy condition.
+- `sid` - (String) Attach policy sid.
+- `not_action` - (List of String) Attach policy not_action.
+- `not_resource` - (List of String) Attach policy not_resource.
+- `principal` - (String) Attach policy principal.
+- `not_principal` - (String) Attach policy not_principal.
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups--security_groups"></a>
@@ -1599,40 +1713,61 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
-- `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
 - `instance_type` - (String) The type of instances in the nodegroup. 
+- `name` - (String) The name of the node group. 
+
+***Optional***
+
+- `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
+- `asg_metrics_collection` - (Block List) Configures the autoscaling group metrics to collect. (See [below for nested schema](#nestedblock--cluster_config--node_groups--asg_metrics_collection))
+- `asg_suspend_processes` - (List of String) List of autoscaling processes to suspend.
+- `availability_zones` - (List of String) Limit nodes to specific AZs. 
+- `bottle_rocket` - (Block List) Configures Bottlerocket nodegroup settings. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--bottle_rocket))
+- `classic_load_balancer_names` - (List of String) Associate load balancers with the autoscaling group.
+- `cluster_dns` - (String) Custom address used for DNS lookups.
+- `cpu_credits` - (String) Configures T3 Unlimited. Valid only for T-type instances.
+- `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
+- `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
+- `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
+- `ebs_optimized` - (Boolean) Enables EBS optimization.
+- `efa_enabled` - (Boolean) Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.
+- `enable_detailed_monitoring` - (Boolean) Enables EC2 detailed monitoring.
+- `iam` - (Block List) Holds all IAM attributes of a nodegroup (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam))
+- `instance_name` - (String) For instances in the nodegroup.
+- `instance_prefix` - (String) Prefix for the instance name.
+- `instance_selector` - (Block List) Selects an instance type based on specified resource criteria. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--instance_selector))
+- `instances_distribution` - (Block List) Holds the configuration for spot instances. (See [below for nested schema](#nestedblock--cluster_config--node_groups--instances_distribution))
+- `kubelet_extra_config` - (Block List) Extra kubelet configuration for the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--kubelet_extra_config))
+- `labels` - (Map of String) The labels on nodes in the nodegroup.
+- `max_pods_per_node` - (Number) The Maximum pods per node. 
 - `max_size` - (Number) The maximum number of instances in the nodegroup. 
 - `min_size` - (Number) The minimum number of instances in the nodegroup. 
-- `name` - (String) The name of the node group. 
+- `override_bootstrap_command` - (String) Override the vendor's bootstrapping script.
+- `placement` - (Block List) Specifies the placement group for the nodegroup instances. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--placement))
+- `pre_bootstrap_commands` - (List of String) Commands executed before bootstrapping instances to the cluster.
+- `private_networking` - (Boolean) Enables private networking for the nodegroup.
+- `security_groups` - (Block List) Controls security groups for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--security_groups))
+- `ssh` - (Block List) Configures SSH access for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--ssh))
+- `subnet_cidr` - (String) Create a new subnet from the CIDR block and limit nodes to this subnet (applicable only for Wavelength Zone nodes).
+- `subnets` - (List of String) Limit nodes to specific subnets.
+- `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups).
+- `target_group_arns` - (List of String) Associate a target group with the autoscaling group.
+- `taints` - (Block List) Taints to apply to the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--taints))
+- `update_config` - (Block List) Configures the nodegroup update behavior. (See [below for nested schema](#nestedblock--cluster_config--node_groups--update_config))
+- `version` - (String) The Kubernetes version for the nodegroup. 
+- `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup.
+- `volume_iops` - (Number) The number of IOPS to provision for the EBS volumes attached to the nodes in this group.
+- `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
+- `volume_name` - (String) The name of the volume. 
 - `volume_size` - (Number) The size of the volume, in gigabytes.
+- `volume_throughput` - (Number) The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.
 - `volume_type` - (String) The volume type for volumes attached to instances in the nodegroup. The supported values are: 
     - `gp2` - General purpose SSD
     - `gp3` - (Default) General purpose SSD which can be optimized for high throughput  
     - `io1` - Provisioned IOPS SSD 
     - `sc1` - Cold HDD
     - `st1` - Throughput Optimized HDD
-
-***Optional***
-
-- `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
-- `availability_zones` - (List of String) Limit nodes to specific AZs. 
-- `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
-- `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
-- `iam` - (Block List) Holds all IAM attributes of a nodegroup (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam))
-- `instance_name` - (String) For instances in the nodegroup.
-- `instances_distribution` - (Block List) Holds the configuration for spot instances. (See [below for nested schema](#nestedblock--cluster_config--node_groups--instances_distribution))
-- `labels` - (Map of String) The labels on nodes in the nodegroup.
-- `max_pods_per_node` - (Number) The Maximum pods per node. 
-- `private_networking` - (Boolean) Enables private networking for the nodegroup.
-- `security_groups` - (Block List) Controls security groups for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--security_groups))
-- `ssh` - (Block List) Configures SSH access for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--ssh))
-- `subnets` - (List of String) Limit nodes to specific subnets.
-- `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups).
-- `version` - (String) The Kubernetes version for the nodegroup. 
-- `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup.
-- `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
-- `volume_name` - (String) The name of the volume. 
 
 
 <a id="nestedblock--cluster_config--node_groups--iam"></a>
@@ -1644,8 +1779,32 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `instance_profile_arn` - (String) The instance profile for the ARNs. 
 - `instance_role_arn` - (String) The instance role for the ARNs.
 - `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
-- `attach_policy` - (Block List) Holds a policy document to attach to the nodegroup. (Deprecated)
+- `attach_policy` - (Block List) Holds a policy document to attach to the nodegroup. (Deprecated) (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam--attach_policy))
 - `attach_policy_v2` - (String) Holds a policy document to attach to the nodegroup in json string format. Wrap policy inside jsonencode() function.
+
+<a id="nestedblock--cluster_config--node_groups--iam--attach_policy"></a>
+### Nested Schema for `cluster_config.node_groups.iam.attach_policy`
+
+***Optional***
+
+- `version` - (String) Attach policy version.
+- `id` - (String) Attach policy ID.
+- `statement` - (Block List) Attach policy statement. (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam--attach_policy--statement))
+
+<a id="nestedblock--cluster_config--node_groups--iam--attach_policy--statement"></a>
+### Nested Schema for `cluster_config.node_groups.iam.attach_policy.statement`
+
+***Optional***
+
+- `effect` - (String) Attach policy effect.
+- `action` - (List of String) Attach policy action.
+- `resource` - (String) Attach policy resource.
+- `condition` - (String) Attach policy condition.
+- `sid` - (String) Attach policy sid.
+- `not_action` - (List of String) Attach policy not_action.
+- `not_resource` - (List of String) Attach policy not_resource.
+- `principal` - (String) Attach policy principal.
+- `not_principal` - (String) Attach policy not_principal.
 
 
 
@@ -1655,12 +1814,17 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 ***Optional***
 
 - `alb_ingress` - (Boolean) Enables access to the application load balancing (ALB) Ingress controller.
+- `app_mesh` - (Boolean) Enables full access to AppMesh.
+- `app_mesh_review` - (Boolean) Enables access to AppMesh Preview.
 - `auto_scaler` - (Boolean) Enables the IAM policy for cluster-autoscaler. 
+- `cert_manager` - (Boolean) Adds cert-manager policies.
 - `cloud_watch` - (Boolean) Enables access to CloudWatch. 
 - `ebs` - (Boolean) Enables the new Elastic Block Store Container Storage Interface (EBS CSI) driver.
 - `efs` - (Boolean) Enables full access to the Amazon Elastic File System (EFS).
 - `external_dns` (Boolean) Adds the external-dns project policies for Route 53.
+- `fsx` - (Boolean) Enables access to FSx for Lustre.
 - `image_builder` - (Boolean) Allows for full Elastic Container Registry (ECR) access. For example, this is useful for building a CI server that needs to push images to ECR.
+- `xray` - (Boolean) Enables access to X-Ray.
 
 <a id="nestedblock--cluster_config--node_groups--instances_distribution"></a>
 ### Nested Schema for `cluster_config.node_groups.instances_distribution`
@@ -1674,6 +1838,33 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `on_demand_percentage_above_base_capacity` - (Number) Range [0-100]
 - `spot_allocation_strategy` - (String) allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price
 - `spot_instance_pools` - (Number) Range [0-20]
+
+<a id="nestedblock--cluster_config--node_groups--asg_metrics_collection"></a>
+### Nested Schema for `cluster_config.node_groups.asg_metrics_collection`
+
+***Optional***
+
+- `granularity` - (String) The granularity of the metrics collected.
+- `metrics` - (List of String) The list of metrics to collect. Valid values are: `GroupMinSize`, `GroupMaxSize`, `GroupDesiredCapacity`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupTerminatingInstances`, `GroupTotalInstances`.
+
+<a id="nestedblock--cluster_config--node_groups--update_config"></a>
+### Nested Schema for `cluster_config.node_groups.update_config`
+
+***Optional***
+
+- `max_unavaliable` - (Number) The maximum number of nodes unavailable during update.
+- `max_unavaliable_percetage` - (Number) The maximum percentage of nodes unavailable during update.
+
+<a id="nestedblock--cluster_config--node_groups--kubelet_extra_config"></a>
+### Nested Schema for `cluster_config.node_groups.kubelet_extra_config`
+
+***Optional***
+
+- `kube_reserved` - (Map of String) Kube reserved resources.
+- `kube_reserved_cgroup` - (String) Kube reserved cgroup.
+- `system_reserved` - (Map of String) System reserved resources.
+- `eviction_hard` - (Map of String) Eviction hard resources.
+- `feature_gates` - (Map of String) Feature gates.
 
 
 
@@ -1702,6 +1893,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Optional***
 
+- `id` - (String) The AWS VPC ID.
 - `cidr` - (String) An IP address in CIDR notation. 
 - `cluster_endpoints` - (Block List) Use to manage access to the Kubernetes API server endpoints. (See [below for nested schema](#nestedblock--cluster_config--vpc--cluster_endpoints))
 - `control_plane_security_group_ids` - (List of String) Additional security groups to attach to the EKS control plane.
@@ -1711,6 +1903,11 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `subnets` - (Block List) The subnets are keyed by AZ for convenience. (See [below for nested schema](#nestedblock--cluster_config--vpc--subnets))
 - `ipv6_cidr` - (String) Specify a range of IPv6 addresses in CIDR notation.
 - `ipv6_pool` - (String) Specify pool ID of the IPv6 address pool.
+- `extra_cidrs` - (List of String) Additional CIDRs for the VPC.
+- `extra_ipv6_cidrs` - (List of String) Additional IPv6 CIDRs for the VPC.
+- `shared_node_security_group` - (String) The shared node security group ID for the VPC.
+- `manage_shared_node_security_group_rules` - (Boolean) Automatically add security group rules to and from the default cluster security group and the shared node security group. This allows unmanaged nodes to communicate with the control plane and managed nodes. This option cannot be disabled when using vendor created security groups.
+- `auto_allocate_ipv6` - (Boolean) Requests an IPv6 CIDR block with a /56 prefix for the VPC.
 
 
 
@@ -1751,8 +1948,13 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `id` - (String) The ID of the subnet. 
 - `name` - (String) The name of the subnet. 
+
+***Optional***
+
+- `id` - (String) The ID of the subnet. 
+- `az` - (String) The availability zone of the subnet.
+- `cidr` - (String) The CIDR range of the subnet.
 
 
 <a id="nestedblock--cluster_config--vpc--subnets--public"></a>
@@ -1760,8 +1962,13 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `id` - (String) The ID of the subnet. 
 - `name` - (String) The name of the subnet. 
+
+***Optional***
+
+- `id` - (String) The ID of the subnet. 
+- `az` - (String) The availability zone of the subnet.
+- `cidr` - (String) The CIDR range of the subnet.
 
 
 <a id="nestedblock--timeouts"></a>

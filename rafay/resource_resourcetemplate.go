@@ -251,10 +251,14 @@ func expandResourceTemplateSpec(p []any) (*eaaspb.ResourceTemplateSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+		err = sharingProjectsSetWhenDisabled(v)
+		if err != nil {
 			return nil, err
 		}
-		spec.Sharing = expandSharingSpec(v)
+		spec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ad, ok := in["artifact_driver"].([]any); ok && len(ad) > 0 {

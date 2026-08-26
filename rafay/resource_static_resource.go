@@ -231,10 +231,14 @@ func expandResourceSpec(p []any) (*eaaspb.ResourceSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+		err := sharingProjectsSetWhenDisabled(v)
+		if err != nil {
 			return nil, err
 		}
-		spec.Sharing = expandSharingSpec(v)
+		spec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil

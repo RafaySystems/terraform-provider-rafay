@@ -794,9 +794,7 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 	return &obj
 }
 
-// errIfProjectsSetWhenSharingDisabled returns an error when sharing.projects
-// is set while sharing.enabled is false.
-func errIfProjectsSetWhenSharingDisabled(p []interface{}) error {
+func sharingProjectsSetWhenDisabled(p []interface{}) error {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
@@ -821,6 +819,34 @@ func errIfProjectsSetWhenSharingDisabled(p []interface{}) error {
 	return nil
 }
 
+// expandSharingSpecWithValidation is equivalent to expandSharingSpec: it
+// converts the Terraform sharing block into a SharingSpec. It returns an
+// error if projects are set while sharing.enabled is false.
+func expandSharingSpecWithValidation(p []interface{}) (*commonpb.SharingSpec, error) {
+	if err := sharingProjectsSetWhenDisabled(p); err != nil {
+		return nil, err
+	}
+
+	obj := commonpb.SharingSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj, nil
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		obj.Projects = expandProjectMeta(v)
+	} else if v, ok := in["projects"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		obj.Projects = expandProjectMeta(v.List())
+	}
+
+	log.Println("expandSharingSpecWithValidation obj", obj)
+	return &obj, nil
+}
+
 func sharingCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	v, ok := d.GetOk("spec.0.sharing")
 	if !ok {
@@ -830,7 +856,7 @@ func sharingCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface
 	if !ok {
 		return nil
 	}
-	return errIfProjectsSetWhenSharingDisabled(sharing)
+	return sharingProjectsSetWhenDisabled(sharing)
 }
 
 func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {

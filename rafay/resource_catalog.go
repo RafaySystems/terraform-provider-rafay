@@ -241,10 +241,14 @@ func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok {
-		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+		err := sharingProjectsSetWhenDisabled(v)
+		if err != nil {
 			return nil, err
 		}
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {

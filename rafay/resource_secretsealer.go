@@ -238,10 +238,14 @@ func expandSecretSealerSpec(p []interface{}) (*integrationspb.SecretSealerSpec, 
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+		err := sharingProjectsSetWhenDisabled(v)
+		if err != nil {
 			return nil, err
 		}
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {

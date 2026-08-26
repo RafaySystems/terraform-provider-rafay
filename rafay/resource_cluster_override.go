@@ -532,10 +532,14 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+		err := sharingProjectsSetWhenDisabled(v)
+		if err != nil {
 			return obj, err
 		}
-		sharingSpec := expandSharingSpec(v)
+		sharingSpec, err := expandSharingSpecWithValidation(v)
+		if err != nil {
+			return obj, err
+		}
 		projs := []*models.ProjectMeta{}
 		for _, project := range sharingSpec.Projects {
 			projs = append(projs, &models.ProjectMeta{

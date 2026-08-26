@@ -348,10 +348,14 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		if err := errIfProjectsSetWhenSharingDisabled(v); err != nil {
+		err := sharingProjectsSetWhenDisabled(v)
+		if err != nil {
 			return nil, err
 		}
-		repoSpec.Sharing = expandSharingSpec(v)
+		repoSpec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// XXX Debug

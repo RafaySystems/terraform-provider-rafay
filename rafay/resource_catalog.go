@@ -229,6 +229,7 @@ func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["auto_sync"].(bool); ok {
 		obj.AutoSync = v
@@ -241,10 +242,6 @@ func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok {
-		err := sharingProjectsSetWhenDisabled(v)
-		if err != nil {
-			return nil, err
-		}
 		obj.Sharing, err = expandSharingSpecWithValidation(v)
 		if err != nil {
 			return nil, err

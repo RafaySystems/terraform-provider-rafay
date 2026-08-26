@@ -228,16 +228,13 @@ func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 	}
 
 	in := p[0].(map[string]any)
+	var err error
 
 	if c, ok := in["config"].([]any); ok && len(c) > 0 {
 		spec.Config = expandWorkflowHandlerConfig(c)
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		err := sharingProjectsSetWhenDisabled(v)
-		if err != nil {
-			return nil, err
-		}
 		spec.Sharing, err = expandSharingSpecWithValidation(v)
 		if err != nil {
 			return nil, err

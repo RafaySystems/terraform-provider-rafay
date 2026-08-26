@@ -364,10 +364,6 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		err = sharingProjectsSetWhenDisabled(v)
-		if err != nil {
-			return nil, err
-		}
 		obj.Sharing, err = expandSharingSpecWithValidation(v)
 		if err != nil {
 			return nil, err

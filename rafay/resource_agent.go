@@ -337,6 +337,7 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
@@ -351,10 +352,6 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		err := sharingProjectsSetWhenDisabled(v)
-		if err != nil {
-			return nil, err
-		}
 		obj.Sharing, err = expandSharingSpecWithValidation(v)
 		if err != nil {
 			return nil, err

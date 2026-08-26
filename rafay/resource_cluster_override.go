@@ -532,10 +532,6 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		err := sharingProjectsSetWhenDisabled(v)
-		if err != nil {
-			return obj, err
-		}
 		sharingSpec, err := expandSharingSpecWithValidation(v)
 		if err != nil {
 			return obj, err

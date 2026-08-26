@@ -239,6 +239,7 @@ func expandAgentPoolSpec(p []interface{}) (*gitopspb.AgentPoolSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if agents, ok := in["agents"].([]interface{}); ok && len(agents) > 0 {
 		for _, agent := range agents {
@@ -249,10 +250,6 @@ func expandAgentPoolSpec(p []interface{}) (*gitopspb.AgentPoolSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		err := sharingProjectsSetWhenDisabled(v)
-		if err != nil {
-			return nil, err
-		}
 		obj.Sharing, err = expandSharingSpecWithValidation(v)
 		if err != nil {
 			return nil, err

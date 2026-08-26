@@ -819,9 +819,9 @@ func sharingProjectsSetWhenDisabled(p []interface{}) error {
 	return nil
 }
 
-// expandSharingSpecWithValidation is equivalent to expandSharingSpec: it
-// converts the Terraform sharing block into a SharingSpec. It returns an
-// error if projects are set while sharing.enabled is false.
+// expandSharingSpecWithValidation converts the Terraform sharing block into a
+// SharingSpec. It returns an error if projects are set while sharing.enabled
+// is false.
 func expandSharingSpecWithValidation(p []interface{}) (*commonpb.SharingSpec, error) {
 	if err := sharingProjectsSetWhenDisabled(p); err != nil {
 		return nil, err

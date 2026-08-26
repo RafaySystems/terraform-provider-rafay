@@ -384,27 +384,26 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
 ---
 
 ```terraform
-resource "rafay_aks_cluster" "demo-terraform" {
-  apiversion = "rafay.io/v1alpha1"
-  kind       = "Cluster"
+resource "rafay_aks_cluster_v3" "demo-terraform" {
   metadata {
     name    = "demo-terraform"
     project = "terraform"
   }
   spec {
-    type          = "aks"
-    blueprint     = "default-aks"
-    cloudprovider = "testuser-azure"
-    cluster_config {
-      apiversion = "rafay.io/v1alpha1"
-      kind       = "aksClusterConfig"
+    type              = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "testuser-azure"
+    config {
+      kind = "aksClusterConfig"
       metadata {
         name = "demo-terraform"
       }
       spec {
         resource_group_name = "testuser-terraform"
         managed_cluster {
-          apiversion = "2023-11-01"
+          api_version = "2023-11-01"
           identity {
             type = "SystemAssigned"
           }
@@ -426,13 +425,21 @@ resource "rafay_aks_cluster" "demo-terraform" {
             power_state {
               code = "Running"
             }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
-          apiversion = "2023-11-01"
-          name       = "primary"
-		      location   = "centralindia"
+          api_version = "2023-11-01"
+          name        = "primary"
+          location    = "centralindia"
           properties {
             count                = 2
             enable_auto_scaling  = true
@@ -466,7 +473,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
         value =  "infra"
       }
 
-      daemonset_override {
+      daemon_set_override {
         node_selection_enabled = false
         tolerations {
           key = "app1dedicated"
@@ -486,44 +493,38 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ## Argument Reference
 
-### Required
-
-- `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
-- `spec` - (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec))
-
 ### Optional
 
 - `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+
+- `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` - (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec))
 
 <a id="nestedblock--metadata"></a>
 
 ### Nested Schema for `metadata`
 
-**_Required_**
-
-- `name` - (String) The name of the AKS Cluster. This must be unique in your organization.
-- `project` - (String) The name of the Rafay project the cluster will be created in.
-
 **_Optional_**
 
 - `labels` - (Map of String) The labels for the cluster.
+
+- `name` - (String) The name of the AKS Cluster. This must be unique in your organization.
+- `project` - (String) The name of the Rafay project the cluster will be created in.
 
 <a id="nestedblock--spec"></a>
 
 ### Nested Schema for `spec`
 
-**_Required_**
+**_Optional_**
+
+- `blueprint_config` - (String) The blueprint name and version used with the cluster. (See [below for nested schema](#nestedblock--spec--blueprint_config)).
+- `proxy_config` - (Block, Optional) Proxy configuration for Rafay system components (bootstrap, agents). Use this if the infrastructure uses an outbound proxy. (See [below for nested schema](#nestedblock--spec--proxy_config)).
 
 - `cloud_credentials` - (String) The name of the cloud credentials used to create and manage the cluster.
 - `config` - (Block List, Min: 1) The AKS specific cluster configuration. (See [below for nested schema](#nestedblock--spec--config))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the Cluster. Cluster can be shared with one or more projects. (See [below for nested schema](#nestedblock--spec--sharing))
 - `type` - (String) The AKS Cluster type. The supported value is `aks`.
 - `system_components_placement` - (Block, list, Max: 1) Configure tolerations and nodeSelector for Rafay system components. (See [below for nested schema](#nestedblock--spec--system_components_placement))
-
-**_Optional_**
-
-- `blueprint_config` - (String) The blueprint name and version used with the cluster. (See [below for nested schema](#nestedblock--spec--blueprint_config)).
-- `proxy_config` - (Block, Optional) Proxy configuration for Rafay system components (bootstrap, agents). Use this if the infrastructure uses an outbound proxy. (See [below for nested schema](#nestedblock--spec--proxy_config)).
 
 <a id="nestedblock--spec--proxy_config"></a>
 
@@ -539,32 +540,30 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ### Nested Schema for `spec.system_components_placement`
 
-**_Required_**
+**_Optional_**
 
 - `node_selector` - (Map of String) Key-Value pairs insuring pods to be scheduled on desired nodes. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
 - `tolerations` - (Block list, Min: 0) Enables the kuberenetes scheduler to schedule pods with matching taints. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
-- `daemonset_override` - (Block list, Min: 0) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--daemonset_override))
+- `daemon_set_override` - (Block list, Min: 0) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--daemon_set_override))
 
 <a id="nestedblock--spec--system_components_placement--tolerations"></a>
 
 ### Nested Schema for `spec.system_components_placement.tolerations`
-
-**_Required_**
-
-- `key` - (String) The taint key that the toleration applies to.
-- `effect` - (String) Indicates the taint effect to match.
-- `operator`- (String) Represents a key's relationship to the value.
 
 **_Optional_**
 
 - `value` - (String) The taint value the toleration matches to.
 - `toleration_seconds` - (Number) Represents the period of time the toleration tolerates the taint
 
-<a id="nestedblock--spec--system_components_placement--daemonset_override"></a>
+- `key` - (String) The taint key that the toleration applies to.
+- `effect` - (String) Indicates the taint effect to match.
+- `operator`- (String) Represents a key's relationship to the value.
 
-### Nested Schema for `spec.system_components_placement.daemonset_override`
+<a id="nestedblock--spec--system_components_placement--daemon_set_override"></a>
 
-**_Required_**
+### Nested Schema for `spec.system_components_placement.daemon_set_override`
+
+**_Optional_**
 
 - `node_selection_enabled` - (Bool) Enables node selection.
 - `tolerations` - (Block list, Min: 0) Additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
@@ -573,7 +572,9 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ### Nested Schema for `spec.config`
 
-**_Required_**
+**_Optional_**
+
+- `api_version` - (String) The API version of the AKS cluster configuration.
 
 - `kind` - (String) The AKS cluster configuration. The supported value is `aksClusterConfig`.
 - `metadata` - (Block List, Min: 1) AKS specific cluster configuration metadata. (See [below for nested schema](#nestedblock--spec--config--metadata))
@@ -583,7 +584,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ### Nested Schema for `spec.config.metadata`
 
-**_Required_**
+**_Optional_**
 
 - `name` - (String) The name of the AKS cluster.
 
@@ -591,16 +592,15 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ### Nested Schema for `spec.config.spec`
 
-**_Required_**
-
-- `managed_cluster` - (Block List) The AKS managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster))
-- `node_pools` - (Block List, Min: 1) The AKS node pool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools))
-- `resource_group_name` - (String) The AKS resource group for the cluster.
-
 **_Optional_**
 
 - `bootstrap_vm_params` - (Block List, Max: 1) Bootstrap VM configuration used when provisioning the cluster. Allows specifying a custom VM size and image (marketplace or non-marketplace) for the bootstrap node. (See [below for nested schema](#nestedblock--spec--config--spec--bootstrap_vm_params))
 - `maintenance_configurations` - (Block List, Min: 0) The AKS Maintenance Configurations used to configure Auto-Upgrade Profile Schedule. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations))
+- `subscription_id` - (String) The Azure subscription ID for the cluster.
+
+- `managed_cluster` - (Block List) The AKS managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster))
+- `node_pools` - (Block List, Min: 1) The AKS node pool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools))
+- `resource_group_name` - (String) The AKS resource group for the cluster.
 
 <a id="nestedblock--spec--config--spec--bootstrap_vm_params"></a>
 
@@ -634,27 +634,31 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster`
 
-**_Required_**
+**_Optional_**
 
-- `apiversion` - (String) The Azure resource managed cluster API version. Newer versions are also supported (e.g., `2025-10-01`).
+- `additional_metadata` - (Block List) Additional metadata associated with the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--additional_metadata))
+- `extended_location` - (Block List) The extended location of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--extended_location))
+- `identity` - (Block List) Identity for the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--identity))
+- `sku` - (Block List) The SKU of a Managed Cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--sku))
+- `tags` - (Map of String) Resource tags.
+
+- `api_version` - (String) The Azure resource managed cluster API version. Newer versions are also supported (e.g., `2025-10-01`).
 - `location` - (String) The AKS cluster location.
 - `properties` - (Block List, Min: 1) The properties of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties))
 - `type` - (String) The supported value is `Microsoft.ContainerService/managedClusters`.
 
+<a id="nestedblock--spec--config--spec--managed_cluster--extended_location"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.extended_location`
+
 **_Optional_**
 
-- `additional_metadata` - (Block List) Additional metadata associated with the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--additional_metadata))
-- `identity` - (Block List) The AKS managed cluster extended location. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--identity))
-- `sku` - (Block List) The SKU of a Managed Cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--sku))
-- `tags` - (Map of String) Resource tags.
+- `name` - (String) The name of the extended location.
+- `type` - (String) The type of the extended location.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties"></a>
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties`
-
-**_Required_**
-
-- `kubernetes_version` - (String) Kubernetes version
 
 **_Optional_**
 
@@ -664,23 +668,31 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 - `auto_scaler_profile` - (Block List) The configurations for Cluter autoscaler profile. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--auto_scaler_profile))
 - `disk_encryption_set_id` - (String) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}`
 - `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. This cannot be updated once the Managed Cluster has been created.
+- `enable_pod_security_policy` - (Boolean) (DEPRECATING) Whether to enable Kubernetes pod security policy (preview).
 - `enable_rbac` - (boolean) Enable Kubernetes Role-Based Access Control.
 - `disable_local_accounts` - (boolean) If set to true, getting static credentials will be disabled for this cluster. This must only be used on Managed Clusters that are AAD enabled.
+- `fqdn_subdomain` - (String) The FQDN subdomain of the private cluster with custom private dns zone. This cannot be updated once the Managed Cluster has been created.
 - `http_proxy_config` - (Block List) HTTP proxy configuration for the AKS managed cluster. Configures proxy settings for control plane and node communication. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--http_proxy_config))
 - `identity_profile` - (Block List) Identities associated with the cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile))
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--network_profile))
 - `node_resource_group` - (String) The name of the resource group containing agent pool nodes.
-- `oidc_issuer_profile` (Block List) Profile of OpenID Connect configuration. (see [below for nested schema](#nestedblock--spec--cluster_config--spec--subscription_id--properties--oidc_issuer_profile))
+- `oidc_issuer_profile` (Block List) Profile of OpenID Connect configuration. (see [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--oidc_issuer_profile))
 - `pod_identity_profile` - (Block List) Azure Active Directory (Azure AD) pod-managed identities use Kubernetes primitives to associate managed identities for Azure resources and identities in Azure AD with pods. See [Use Azure AD Pod-Managed Identities](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity) for more information. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile))
 - `power_state` - (Block List) Cluster Power State to Stop/Start the AKS cluster. See [Stop and start an Azure Kubernetes Service (AKS) cluster](https://learn.microsoft.com/en-us/azure/aks/start-stop-cluster?tabs=azure-cli) for more information.
+- `private_link_resources` - (Block List) Private link resources associated with the cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--private_link_resources))
+- `public_network_access` - (String) Allow or deny public network access for AKS. Valid values are `Enabled`, `Disabled`.
 - `security_profile` - (Block List) The security profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile))
 - `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_principal_profile))
+- `storage_profile` - (Block List) Storage profile for the container service cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--storage_profile))
+- `windows_profile` - (Block List) Profile for Windows VMs in the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--windows_profile))
 - `auto_upgrade_profile` - (Block List) Configure Auto-Upgrade Profile to handle automatic k8s version upgrade and node os image upgrade. See [below for nested schema]
   (#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile)
 - `ingress_profile` - (Block List, Max: 1) The ingress profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile))
 - `service_mesh_profile` - (Block List, Max: 1) Configuration for the service mesh profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile))
 - `node_provisioning_profile` - (Block List, Max: 1) The node provisioning profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile))
+
+- `kubernetes_version` - (String) Kubernetes version
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile"></a>
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.node_provisioning_profile`
@@ -741,7 +753,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.components.egress_gateways`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) Whether the egress gateway is enabled.
 - `gateway_configuration_name` - (String) The name of the gateway configuration.
@@ -752,7 +764,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.components.ingress_gateways`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) Whether the ingress gateway is enabled.
 - `mode` - (String) Mode of the ingress gateway, e.g., 'External' or 'Internal'.
@@ -770,14 +782,24 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 * **enabled** - (Optional) Whether web app routing is enabled. Defaults to `false`.
 * **dns_zone_resource_ids** - (Optional) A list of resource IDs of the DNS zones to be used for web app routing.
+* **identity** - (Optional, Block List, Max: 1) The user assigned identity to be used for web app routing. See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing--identity).
 * **nginx** - (Optional, Block List, Max: 1) Nginx ingress controller configuration. See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing--nginx).
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing--identity"></a>
+
+### `identity`
+
+**_Optional_**
+* **client_id** - (String) The client ID of the user assigned identity.
+* **object_id** - (String) The object ID of the user assigned identity.
+* **resource_id** - (String) The resource ID of the user assigned identity.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing--nginx"></a>
 
 ### `nginx`
 
-**_Required_**
-* **default_ingress_controller_type** - The type of ingress controller to be used. Valid values are `None`, `Internal`, `External` and `AnnotationControlled`.
+**_Optional_**
+* **default_ingress_controller_type** - The type of ingress controller to be used. Valid values are `Nginx`, `Traefik`.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--http_proxy_config"></a>
 
@@ -794,7 +816,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.auto_upgrade_profile`
 
-**_Required_**
+**_Optional_**
 
 - `upgrade_channel` - (String) Configure channel with one of the following values [none, rapid, stable, patch, node-image]
 - `node_os_upgrade_channel` - (String) Configure channel with one of the following values [None, NodeImage, SecurityPatch]
@@ -811,7 +833,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.identity_profile.kubelet_identity`
 
-**_Required_**
+**_Optional_**
 
 - `resource_id` (String) - ARM resource IDs in the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`.
 
@@ -822,8 +844,12 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 **_Optional_**
 
 - `admin_group_object_ids` (List of String) - The AKS managed cluster aad profile admin group object ids.
+- `client_app_id` - (String) The client AAD application ID.
 - `enable_azure_rbac` (Boolean) - Enable/Disable azure rbac for kubernetes authorization.
 - `managed` (Boolean) - Enable/Disable managed Azure Active Directory integration.
+- `server_app_id` - (String) The server AAD application ID.
+- `server_app_secret` - (String) The server AAD application secret.
+- `tenant_id` - (String) The AAD tenant ID to use for authentication. If not specified, will use the tenant of the deployment subscription.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--addon_profiles"></a>
 
@@ -841,7 +867,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.azure_keyvault_secrets_provider`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) - Enable/Disable Azure keyVault secret provider.
 - `config` - (Block List) Configurations for Azure keyvault secrets provider. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--addon_profiles--azure_keyvault_secrets_provider--config))
@@ -850,7 +876,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.azure_keyvault_secrets_provider.config`
 
-**_Required_**
+**_Optional_**
 
 - `enable_secret_rotation` (String) Enable/Disable secret rotation.
 - `rotation_poll_interval` (String) The interval to poll for secret rotation. Defaults to `2m`.
@@ -859,7 +885,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.azure_policy`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) - Enable/Disable Azure Policy.
 
@@ -869,7 +895,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 > **Note:** The `http_application_routing` add-on can no longer be enabled on new clusters. Please use the Application Routing Add-on (`ingress_profile.web_app_routing`) instead. See [App Routing migration guide](https://aka.ms/app-routing-migration) for more information.
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) - Enable/Disable HTTP Application Routing.
 
@@ -877,7 +903,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.ingress_application_gateway`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) - Enable/Disable Azure Ingress Application Gateway.
 - `config` - (Block List) Configurations for Azure Ingress Application Gateway. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--addon_profiles--ingress_application_gateway--config)
@@ -898,7 +924,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.oms_agent`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) - Enable/Disable OMS Agent.
 - `config` - (Block List) Configurations for OMS agent. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--addon_profiles--oms_agent--config))
@@ -907,7 +933,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.oms_agent.config`
 
-**_Required_**
+**_Optional_**
 
 - `log_analytics_workspace_resource_id` - (String) Log analytics workspace reource. This is of the form: `"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.operationalinsights/workspaces/{logAnalyticsWorkspace}"`
 
@@ -918,6 +944,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 **_Optional_**
 
 - `authorized_ip_ranges` - (List of String) The AKS managed cluster properties server access profile server access profile.
+- `disable_run_command` - (Boolean) Whether to disable run command for the cluster or not.
 - `enable_private_cluster` - (Boolean) Enable an AKS private cluster.
 - `enable_private_cluster_public_fqdn` - (Boolean) Enable pubic FQDN for an AKS private cluster.
 - `private_dns_zone` - (String) It requires you to create a Private DNS Zone in this format for Azure global cloud: privatelink.<region>.azmk8s.io or <subzone>.privatelink.<region>.azmk8s.io. You will need to specify the Resource ID of that Private DNS Zone. Additionally, you will need a user assigned identity or service principal with at least the private dns zone contributor and network contributor roles.
@@ -961,7 +988,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.linux_profile.ssh`
 
-**_Required_**
+**_Optional_**
 
 - `public_keys` - (Block List) The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_keys))
 
@@ -969,7 +996,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.linux_profile.ssh.public_keys`
 
-**_Required_**
+**_Optional_**
 
 - `key_data` (String) The public key used to authenticate with VMs through SSH.
 
@@ -981,7 +1008,10 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 - `dns_service_ip` - (String) An IP address assigned to the Kubernetes DNS service.
 - `docker_bridge_cidr` - (String) A CIDR notation IP range assigned to the Docker bridge network.
+- `ip_families` - (List of String) IP families are used to determine single-stack or dual-stack clusters. For single-stack, the expected value is `IPv4`. For dual-stack, the expected values are `IPv4` and `IPv6`.
+- `load_balancer_profile` - (Block List, Max: 1) Profile of the managed cluster load balancer. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--network_profile--load_balancer_profile))
 - `load_balancer_sku` - (String) Supported values are: `standard` and `basic`.
+- `nat_gateway_profile` - (Block List, Max: 1) Profile of the managed cluster NAT gateway. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--network_profile--nat_gateway_profile))
 - `network_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `transparent` and `bridge`.
 - `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure`, `kubenet`, and `none`.
 
@@ -990,43 +1020,65 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 - `network_dataplane` - (String) Network dataplane used in the Kubernetes cluster. Valid values are `azure`, `cilium`. Required when `network_policy` is set to `cilium`.
 - `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `azure`, `calico`, and `cilium`.
 - `outbound_type` - (String) The outbound/egress routing method.
-  Supported values are: `loadBalancer` and `userDefinedRouting`.
+  Supported values are: `loadBalancer`, `userDefinedRouting`, `managedNATGateway`, and `userAssignedNATGateway`.
 - `pod_cidr` - (String) A CIDR notation IP range from which to assign pod IPs when kubenet is used.
+- `pod_cidrs` - (List of String) One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking.
 - `service_cidr` - (String) A CIDR notation IP range from which to assign service cluster IPs.
+- `service_cidrs` - (List of String) One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking. They must not overlap with any Subnet IP ranges.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--network_profile--load_balancer_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.network_profile.load_balancer_profile`
+
+**_Optional_**
+
+- `allocated_outbound_ports` - (Number) The desired number of allocated SNAT ports per VM. Allowed values are in the range of 0 to 64000 (inclusive). The default value is 0 which results in Azure dynamically allocating ports.
+- `effective_outbound_i_ps` - (Block List) The effective outbound IP resources of the cluster load balancer. Each item has an `id` (String), the fully qualified Azure resource id.
+- `enable_multiple_standard_load_balancers` - (Boolean) Enable multiple standard load balancers per AKS cluster or not.
+- `idle_timeout_in_minutes` - (Number) Desired outbound flow idle timeout in minutes. Allowed values are in the range of 4 to 120 (inclusive). The default value is 30 minutes.
+- `managed_outbound_i_ps` - (Block List, Max: 1) Desired managed outbound IPs for the cluster load balancer. Contains `count` (Number, IPv4) and `count_i_pv_6` (Number, IPv6).
+- `outbound_i_ps` - (Block List, Max: 1) Desired outbound IP resources for the cluster load balancer. Contains `public_i_ps` (Block List), a list of public IP resources, each with an `id` (String).
+- `outbound_ip_prefixes` - (Block List, Max: 1) Desired outbound IP Prefix resources for the cluster load balancer. Contains `public_ip_prefixes` (Block List), a list of public IP prefix resources, each with an `id` (String).
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--network_profile--nat_gateway_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.network_profile.nat_gateway_profile`
+
+**_Optional_**
+
+- `effective_outbound_i_ps` - (Block List) The effective outbound IP resources of the cluster NAT gateway. Each item has an `id` (String), the fully qualified Azure resource id.
+- `idle_timeout_in_minutes` - (Number) Desired outbound flow idle timeout in minutes. Allowed values are in the range of 4 to 120 (inclusive). The default value is 4 minutes.
+- `managed_outbound_ip_profile` - (Block List, Max: 1) Profile of the managed outbound IP resources of the managed cluster. Contains `count` (Number). Allowed values are in the range of 1 to 16 (inclusive). The default value is 1.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile"></a>
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.pod_identity_profile`
 
-**_Required_**
+**_Optional_**
+
+- user_assigned_identity_exceptions - (Block List) The pod identity exceptions to allow. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identity_exceptions))
 
 - allow_network_plugin_kubenet - (Boolean) Enables running in Kubenet. **Note**: Running in Kubenet is disabled by default due to the security related nature of AAD Pod Identity and the risks of IP spoofing. See [Using Kubenet network plugin with AAD Pod Identity](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity#using-kubenet-network-plugin-with-azure-active-directory-pod-managed-identities) for more information.
 - enabled - (Boolean) Enables the pod identity add-on.
 - user_assigned_identities - (Block List) The pod identities used in the cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities))
 
-**_Optional_**
-
-- user_assigned_identity_exceptions - (Block List) The pod identity exceptions to allow. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identity_exceptions))
-
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities"></a>
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.pod_identity_profile.user_assigned_identities`
-
-**_Required_**
-
-- identity - (Block List) Details about the user assigned identity. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities--identity))
-- name - (String) The name of the pod identity.
-- namespace - (String) The namespace of the pod identity.
 
 **_Optional_**
 
 - binding_selector - (String) The binding selector to use for the AzureIdentityBinding resource.
 
+- identity - (Block List) Details about the user assigned identity. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities--identity))
+- name - (String) The name of the pod identity.
+- namespace - (String) The namespace of the pod identity.
+
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities--identity"></a>
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.pod_identity_profile.user_assigned_identities.identity`
 
-**_Required_**
+**_Optional_**
 
 - client_id - (String) The client ID for the user assigned identity.
 - object_id - (String) The object ID for the user assigned identity.
@@ -1036,7 +1088,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.pod_identity_profile.user_assigned_identity_exceptions`
 
-**_Required_**
+**_Optional_**
 
 - name - (String) The name of the pod identity exception.
 - namespace - (String) The namespace of the pod identity exception.
@@ -1046,10 +1098,53 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.service_principal_profile`
 
-**_Required_**
+**_Optional_**
 
 - `client_id` - (String) The ID for the service principal. If specified, must be set to `[parameters('servicePrincipalClientId')]`. This would be set to the cloud credential's client ID during cluster deployment.
 - `secret` - (String) The secret password associated with the service principal in plain text.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--private_link_resources"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.private_link_resources`
+
+**_Optional_**
+
+- `group_id` - (String) The group ID of the resource.
+- `id` - (String) The ID of the private link resource.
+- `name` - (String) The name of the private link resource.
+- `required_members` - (List of String) The list of private link resource members that are required for the resource.
+- `type` - (String) The resource type.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--storage_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.storage_profile`
+
+**_Optional_**
+
+- `disk_csi_driver` - (Block List, Max: 1) AzureDisk CSI Driver settings for the storage profile. Contains `enabled` (Boolean). The default value is `true`.
+- `file_csi_driver` - (Block List, Max: 1) AzureFile CSI Driver settings for the storage profile. Contains `enabled` (Boolean). The default value is `true`.
+- `snapshot_controller` - (Block List, Max: 1) Snapshot Controller settings for the storage profile. Contains `enabled` (Boolean). The default value is `true`.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--windows_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.windows_profile`
+
+**_Optional_**
+
+- `admin_username` - (String) Specifies the name of the administrator account. Restriction: Cannot end in `.`, Minimum-length: 1 character, Max-length: 20 characters.
+- `enable_csi_proxy` - (Boolean) Whether to enable the CSI proxy.
+- `gmsa_profile` - (Block List, Max: 1) Windows gMSA Profile in the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--windows_profile--gmsa_profile))
+- `license_type` - (String) The license type to use for Windows VMs. Valid values are `None`, `Windows_Server`.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--windows_profile--gmsa_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.windows_profile.gmsa_profile`
+
+**_Optional_**
+
+- `dns_server` - (String) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+- `enabled` - (Boolean) Specifies whether to enable Windows gMSA in the managed cluster.
+- `root_domain_name` - (String) Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--additional_metadata"></a>
 
@@ -1066,25 +1161,25 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 **_Optional_**
 
+- `acr_name` - (String) The name of the Azure Container Registry resource.
 - `registries` - (Block List) Registry for the Azure Container Registry configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--additional_metadata--acr_profile--registries))
+- `resource_group_name` - (String) If not specified, defaults to the resource group of the managed cluster.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--additional_metadata--acr_profile--registries"></a>
 
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.additional_metadata.acr_profile--registries`
 
-**_Required_**
-
-- `acr_name` - (String) The name of the Azure Container Registry resource.
-
 **_Optional_**
 
 - `resource_group_name` - (String) If not specified, defaults to the resource group of the managed cluster.
+
+- `acr_name` - (String) The name of the Azure Container Registry resource.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--identity"></a>
 
 ### Nested Schema for `spec.config.spec.managed_cluster.identity`
 
-**_Required_**
+**_Optional_**
 
 - `type` - (String) The identity type for the AKS cluster. For more information see [Use managed identities in AKS](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity). Supported values are: `SystemAssigned`, `UserAssigned`, and `None`.
 - `user_assigned_identities` - (Map of String) User assigned Managed identity. The keys must be ARM resource IDs in the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`. Values has to be an empty object. `"{}"`
@@ -1093,7 +1188,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.managed_cluster.sku`
 
-**_Required_**
+**_Optional_**
 
 - `name` - (String) The name of a managed cluster SKU. The supported value is `Base`.
 - `tier` - (String) Supported values are: `Paid` and `Free`.
@@ -1102,9 +1197,9 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.config.spec.node_pools`
 
-**_Required_**
+**_Optional_**
 
-- `apiversion` - (String) The AKS node pool API version. Newer versions are also supported (e.g., `2025-10-01`).
+- `api_version` - (String) The AKS node pool API version. Newer versions are also supported (e.g., `2025-10-01`).
 - `location` - (String) The AKS node pool location.
 - `name` - (String) The AKS node pool name.
 - `properties` - (Block List, Min: 1) The AKS managed cluster properties. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties))
@@ -1118,20 +1213,34 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 - `availability_zones` - (List of String) The list of availability zones to use for nodes. This can only be specified if the `AgentPoolType` property is `VirtualMachineScaleSets`.
 - `count` - (Number) The number of agents (VMs) to host docker containers. Allowed values must be in the range of `0` to `1000` (inclusive) for user pools and in the range of `1` to `1000` (inclusive) for system pools. The default value is `1`.
+- `creation_data` - (Block List) The AKS node pool creation data. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--creation_data))
 - `enable_auto_scaling` - (Boolean) Enables the auto-scaler.
+- `enable_encryption_at_host` - (Boolean) Encrypts data on nodes for added security. This is only supported on certain VM sizes and in certain Azure regions.
+- `enable_fips` - (Boolean) Whether to use a FIPS-enabled OS on the node pool.
 - `enable_node_public_ip` - (Boolean) Assigns public IPs directly to nodes, allowing external access.
-- `enable_encryption_at_host` - (Boolean) Encrypts data on nodes for added security.
+- `enable_ultra_ssd` - (Boolean) Whether to enable UltraSSD.
+- `gpu_instance_profile` - (String) GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Valid values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g`, `MIG7g`.
+- `host_group_id` - (String) The fully qualified resource ID of the Dedicated Host Group. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/hostGroups/{hostGroupName}`.
+- `kubelet_config` - (Block List) The kubelet configuration for the node pool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--kubelet_config))
+- `kubelet_disk_type` - (String) Valid values are `OS` and `Temporary`.
+- `linux_os_config` - (Block List) The OS configuration of Linux agent nodes. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--linux_os_config))
 - `max_count` - (Number) The maximum number of nodes for auto-scaling.
 - `max_pods` - (Number) The maximum number of pods that can run on a node.
 - `min_count` - (Number) The minimum number of nodes for auto-scaling
 - `mode` - (String) The mode for a node pool which defines a node pool's primary function. If set as `System`, AKS prefers system pods scheduling to node pools with mode `System`. Supported values are: `System` and `User`.
+- `node_image_version` - (String) The version of the node OS image used by the agent pool. This is read-only and reflects the current image version applied to the nodes.
 - `node_labels` - (Map of String) Node labels.
+- `node_public_ip_prefix_id` - (String) This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/publicIPPrefixes/{publicIPPrefixName}`.
 - `node_taints` - (List of String) The taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 - `orchestrator_version` - (String) The AKS node pool Kubernetes version.
 - `os_disk_size_gb` - (Number) OS Disk Size in GB to be used to specify the disk size for every machine in the master/agent pool.
 - `os_disk_type` - (String) Supported values are: `Managed` and `Ephemeral`.
+- `os_sku` - (String) Valid values are `Ubuntu`, `CBLMariner`, `Windows2019`, `Windows2022`.
 - `os_type` - (String) Supported values are: `Linux` and `Windows`.
 - `pod_subnet_id` - (String) If omitted, pod IPs are statically assigned on the node subnet (See vnet_subnet_id for more details). This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}`.
+- `power_state` - (Block List) Describes whether the node pool is Running or Stopped. Contains `code` (String).
+- `proximity_placement_group_id` - (String) The ID for Proximity Placement Group.
+- `scale_down_mode` - (String) If not specified, it defaults to `Delete`. Valid values are `Delete` and `Deallocate`. This also affects the cluster autoscaler behavior.
 - `scale_set_eviction_policy` - (String) This cannot be specified unless the `scaleSetPriority` is `Spot`. If not specified, the default is `Delete`. Supported values are: `Delete` and `Deallocate`.
 - `scale_set_priority` - (String) The virtual machine scale set priority. If not specified, the default is `Regular`. Supported values are: `Spot` and `Regular`.
 - `spot_max_price` - (Number) Supported values are: any decimal value greater than zero or -1 (which indicates the willingness to pay any on-demand price). For more details on spot pricing, see [Azure Spot Virtual Machines](https://azure.microsoft.com/en-us/services/virtual-machines/spot/).
@@ -1140,9 +1249,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 - `upgrade_settings` - (Block List) Settings for upgrading an agentpool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--upgrade_settings))
 - `vm_size` - (String) The AKS node pool VM size.
 - `vnet_subnet_id` - (String) If this is not specified, a VNET and subnet will be generated and used. If no `podSubnetID` is specified, this applies to nodes and pods, otherwise it applies to just nodes.
-- `node_image_version` - (String) The AKS node pool node image version.
-- `creation_data` - (Block List) The AKS node pool creation data. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--creation_data))
-- `kubelet_config` - (Block List) The kubelet configuration for the node pool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--kubelet_config))
+- `workload_runtime` - (String) Valid values are `OCIContainer` and `WasmWasi`.
 
 
 <a id="nestedblock--spec--config--spec--node_pools--properties--kubelet_config"></a>
@@ -1162,11 +1269,54 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 - `topology_manager_policy` - (String) For more information see Kubernetes Topology Manager. The default is none. Allowed values are none, best-effort, restricted, and single-numa-node.
 
 
+<a id="nestedblock--spec--config--spec--node_pools--properties--linux_os_config"></a>
+### Nested Schema for `spec.config.spec.node_pools.properties.linux_os_config`
+**_Optional_**
+
+- `swap_file_size_mb` - (Integer) The size in MB of a swap file that will be created on each node.
+- `sysctls` - (Block List) Sysctl settings for Linux agent nodes. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--linux_os_config--sysctls))
+- `transparent_huge_page_defrag` - (String) Valid values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. The default is `madvise`.
+- `transparent_huge_page_enabled` - (String) Valid values are `always`, `madvise`, and `never`. The default is `always`.
+
+<a id="nestedblock--spec--config--spec--node_pools--properties--linux_os_config--sysctls"></a>
+### Nested Schema for `spec.config.spec.node_pools.properties.linux_os_config.sysctls`
+**_Optional_**
+
+- `fs_aio_max_nr` - (Integer) Sysctl setting fs.aio-max-nr.
+- `fs_file_max` - (Integer) Sysctl setting fs.file-max.
+- `fs_inotify_max_user_watches` - (Integer) Sysctl setting fs.inotify.max_user_watches.
+- `fs_nr_open` - (Integer) Sysctl setting fs.nr_open.
+- `kernel_threads_max` - (Integer) Sysctl setting kernel.threads-max.
+- `net_core_netdev_max_backlog` - (Integer) Sysctl setting net.core.netdev_max_backlog.
+- `net_core_optmem_max` - (Integer) Sysctl setting net.core.optmem_max.
+- `net_core_rmem_default` - (Integer) Sysctl setting net.core.rmem_default.
+- `net_core_rmem_max` - (Integer) Sysctl setting net.core.rmem_max.
+- `net_core_somaxconn` - (Integer) Sysctl setting net.core.somaxconn.
+- `net_core_wmem_default` - (Integer) Sysctl setting net.core.wmem_default.
+- `net_core_wmem_max` - (Integer) Sysctl setting net.core.wmem_max.
+- `net_ipv_4_ip_local_port_range` - (String) Sysctl setting net.ipv4.ip_local_port_range.
+- `net_ipv_4_neigh_default_gc_thresh_1` - (Integer) Sysctl setting net.ipv4.neigh.default.gc_thresh1.
+- `net_ipv_4_neigh_default_gc_thresh_2` - (Integer) Sysctl setting net.ipv4.neigh.default.gc_thresh2.
+- `net_ipv_4_neigh_default_gc_thresh_3` - (Integer) Sysctl setting net.ipv4.neigh.default.gc_thresh3.
+- `net_ipv_4_tcp_fin_timeout` - (Integer) Sysctl setting net.ipv4.tcp_fin_timeout.
+- `net_ipv_4_tcp_keepalive_probes` - (Integer) Sysctl setting net.ipv4.tcp_keepalive_probes.
+- `net_ipv_4_tcp_keepalive_time` - (Integer) Sysctl setting net.ipv4.tcp_keepalive_time.
+- `net_ipv_4_tcp_max_syn_backlog` - (Integer) Sysctl setting net.ipv4.tcp_max_syn_backlog.
+- `net_ipv_4_tcp_max_tw_buckets` - (Integer) Sysctl setting net.ipv4.tcp_max_tw_buckets.
+- `net_ipv_4_tcp_tw_reuse` - (Boolean) Sysctl setting net.ipv4.tcp_tw_reuse.
+- `net_ipv_4_tcpkeepalive_intvl` - (Integer) Sysctl setting net.ipv4.tcp_keepalive_intvl.
+- `net_netfilter_nf_conntrack_buckets` - (Integer) Sysctl setting net.netfilter.nf_conntrack_buckets.
+- `net_netfilter_nf_conntrack_max` - (Integer) Sysctl setting net.netfilter.nf_conntrack_max.
+- `vm_max_map_count` - (Integer) Sysctl setting vm.max_map_count.
+- `vm_swappiness` - (Integer) Sysctl setting vm.swappiness.
+- `vm_vfs_cache_pressure` - (Integer) Sysctl setting vm.vfs_cache_pressure.
+
+
 <a id="nestedblock--spec--config--spec--node_pools--properties--creation_data"></a>
 ### Nested Schema for `spec.config.spec.node_pools.properties.creation_data`
-**_Required_**
-- `source_resource_id` - (String) The source resource ID used for creating the node pool. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{clusterName}/agentPools/{agentPoolName}`.
+**_Optional_**
 
+- `source_resource_id` - (String) The source resource ID used for creating the node pool. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{clusterName}/agentPools/{agentPoolName}`.
 
 <a id="nestedblock--spec--config--spec--node_pools--properties--upgrade_settings"></a>
 
@@ -1180,7 +1330,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations`
 
-**_Required_**
+**_Optional_**
 
 - `api_version` - (String) The AKS maintenance configuration API version. The recommended value is `2024-01-01`.
 - `name` - (String) The AKS maintenance configuration name. It should be one of the following values [default, aksManagedNodeOSUpgradeSchedule, aksManagedAutoUpgradeSchedule].
@@ -1191,14 +1341,12 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties`
 
-**_Required_**
-
-- `maintenance_window` - (Block List, Min: 1) Configure maintenance window in a maintenance configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window))
-
 **_Optional_**
 
 - `not_allowed_time` - (Block List) Configure start and end time for maintenance configuration to not run. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--not_allowed_time))
 - `time_in_week` - (Block List) Configure day and hour_slots for maintenance configuration to run. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--time_in_week))
+
+- `maintenance_window` - (Block List, Min: 1) Configure maintenance window in a maintenance configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window))
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--not_allowed_time"></a>
 
@@ -1216,23 +1364,21 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 **_Optional_**
 
 - `day` - (String) Specify day of the week. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
-- `hourSlot` - (Block List) Each integer hour represents a time range beginning at 0m after the hour ending at the next hour (non-inclusive). 0 corresponds to 00:00 UTC, 23 corresponds to 23:00 UTC. Specifying [0, 1] means the 00:00 - 02:00 UTC time range. Value should be between 0 to 23
+- `hour_slots` - (List of Number) Each integer hour represents a time range beginning at 0m after the hour ending at the next hour (non-inclusive). 0 corresponds to 00:00 UTC, 23 corresponds to 23:00 UTC. Specifying [0, 1] means the 00:00 - 02:00 UTC time range. Value should be between 0 to 23
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window"></a>
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window`
-
-**_Required_**
-
-- `duration_hours` - (Number) Configure the value between 4 to 24 hours.
-- `start_time` - (String) Configure the start time of maintenance window. Accepted values should be in format of 'HH:MM'.
-- `schedule` - (Block List) Recurrence schedule for the maintenance window. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule))
 
 **_Optional_**
 
 - `not_allowed_dates` - (Block List) Date ranges on which upgrade is not allowed. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--not_allowed_dates))
 - `start_date` - (String) The date the maintenance window activates. If the current date is before this date, the maintenance window is inactive and will not be used for upgrades. If not specified, the maintenance window will be active right away.
 - `utc_offset` - (String) The UTC offset in format +/-HH:mm. If not specified, the default is '+00:00'.
+
+- `duration_hours` - (Number) Configure the value between 4 to 24 hours.
+- `start_time` - (String) Configure the start time of maintenance window. Accepted values should be in format of 'HH:MM'.
+- `schedule` - (Block List) Recurrence schedule for the maintenance window. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule))
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule"></a>
 
@@ -1249,7 +1395,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.absolute_monthly`
 
-**_Required_**
+**_Optional_**
 
 - `day_of_month` - (Number) The date of the Month. Value should be between 1 to 31.
 - `interval_months` - (Number) Specifies the number of months between each set of occurrences. Value should be between 1 to 6.
@@ -1258,7 +1404,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.relative_monthly`
 
-**_Required_**
+**_Optional_**
 
 - `day_of_week` - (String) The day of the week. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
 - `interval_months` - (Number) Specifies the number of months between each set of occurrences. Value should be between 1 to 6.
@@ -1268,24 +1414,24 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.daily`
 
-**_Required_**
+**_Optional_**
 
-- `intervalDays` - (Number) Specifies the number of days between each set of occurrences. Value should be between 1 to 7.
+- `interval_days` - (Number) Specifies the number of days between each set of occurrences. Value should be between 1 to 7.
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule--weekly"></a>
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.weekly`
 
-**_Required_**
+**_Optional_**
 
-- `day_of_week` - (Number) Specifies on which day of the week the maintenance occurs. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+- `day_of_week` - (String) Specifies on which day of the week the maintenance occurs. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
 - `interval_weeks` - (Number) Specifies the number of weeks between each set of occurrences. Value should be between 1 to 4.
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--not_allowed_dates"></a>
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.not_allowed_dates`
 
-**_Required_**
+**_Optional_**
 
 - `end` - (String) End date for the date span.
 - `start` - (String) Start date for the date span.
@@ -1294,7 +1440,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.sharing`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) Enable sharing for this resource.
 - `projects` - (Block List) The list of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects))
@@ -1303,7 +1449,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.sharing.projects`
 
-**_Required_**
+**_Optional_**
 
 - `name` - (String) The name of the project to share the resource.
 
@@ -1311,7 +1457,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `spec.blueprint_config`
 
-**_Required_**
+**_Optional_**
 
 - `name` - (String) The name of the blueprint.
 - `version` - (String) The version of the blueprint.
@@ -1320,57 +1466,55 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 ### Nested Schema for `timeouts`
 
-### Nested Schema for `spec.cluster_config.spec.subscription_id.properties.oidc_issuer_profile`
-
-<a id="nestedblock--spec--cluster_config--spec--subscription_id--properties--oidc_issuer_profile"></a>
-
-**_Required_**
-
-- `enabled` - (Boolean) Enable/Disable OIDC issuer profile.
-
-### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.security_profile`
-
-<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile"></a>
-
-**_Required_**
-
-- `workload_identity` - (Block List) Enable/Disable workload identity. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile--workload_identity))
-
-<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile--workload_identity"></a>
-
-### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.security_profile.workload_identity`
-
-**_Required_**
-
-- `enabled` - (Boolean) Enable/Disable workload identity.
-
 **_Optional_**
 
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
 - `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
 - `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
 
-### Nested Schema for `spec.cluster_config.spec.subscription_id.properties.oidc_issuer_profile`
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--oidc_issuer_profile"></a>
 
-<a id="nestedblock--spec--cluster_config--spec--subscription_id--properties--oidc_issuer_profile"></a>
+### Nested Schema for `spec.config.spec.managed_cluster.properties.oidc_issuer_profile`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) Enable/Disable OIDC issuer profile.
 
-### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.security_profile`
-
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile"></a>
 
-**_Required_**
+### Nested Schema for `spec.config.spec.managed_cluster.properties.security_profile`
 
+**_Optional_**
+
+- `azure_key_vault_kms` - (Block List, Max: 1) Azure Key Vault key management service settings for the security profile. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--security_profile--azure_key_vault_kms))
+- `defender` - (Block List, Max: 1) Microsoft Defender settings for the security profile. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--security_profile--defender))
 - `workload_identity` - (Block List) Enable/Disable workload identity. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile--workload_identity))
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--security_profile--azure_key_vault_kms"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.security_profile.azure_key_vault_kms`
+
+**_Optional_**
+
+- `enabled` - (Boolean) Whether to enable Azure Key Vault key management service. The default is `false`.
+- `key_id` - (String) Identifier of Azure Key Vault key. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When Azure Key Vault key management service is disabled, leave the field empty.
+- `key_vault_network_access` - (String) Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. The default value is `Public`.
+- `key_vault_resource_id` - (String) Resource ID of key vault. When `key_vault_network_access` is `Private`, this field is required and must be a valid resource ID. When `key_vault_network_access` is `Public`, leave the field empty.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--security_profile--defender"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.security_profile.defender`
+
+**_Optional_**
+
+- `log_analytics_workspace_resource_id` - (String) Resource ID of the Log Analytics workspace to be associated with Microsoft Defender. When Microsoft Defender is enabled, this field is required and must be a valid workspace resource ID. When Microsoft Defender is disabled, leave the field empty.
+- `security_monitoring` - (Block List, Max: 1) Microsoft Defender settings for the security profile threat detection. Contains `enabled` (Boolean).
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile--workload_identity"></a>
 
-### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.security_profile.workload_identity`
+### Nested Schema for `spec.config.spec.managed_cluster.properties.security_profile.workload_identity`
 
-**_Required_**
+**_Optional_**
 
 - `enabled` - (Boolean) Enable/Disable workload identity.
 

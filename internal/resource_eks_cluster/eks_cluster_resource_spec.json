@@ -512,7 +512,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                               
@@ -557,21 +557,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
@@ -1407,7 +1407,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 
@@ -1452,21 +1452,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
@@ -2377,7 +2377,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 
@@ -2422,21 +2422,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
@@ -5078,7 +5078,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional" 
+                                                        "computed_optional_required": "computed_optional" 
                                                     }
                                                 },
                                                 {
@@ -5122,21 +5122,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional"
                                                     }
                                                 },
                                                 {

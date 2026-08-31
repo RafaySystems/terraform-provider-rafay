@@ -512,7 +512,20 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                               
@@ -557,21 +570,60 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -1407,7 +1459,20 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 
@@ -1452,21 +1517,60 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -2377,7 +2481,20 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 
@@ -2422,21 +2539,60 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -5078,7 +5234,20 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional" 
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -5122,21 +5291,60 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {

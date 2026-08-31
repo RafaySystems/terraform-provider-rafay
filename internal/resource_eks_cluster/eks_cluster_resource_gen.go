@@ -714,6 +714,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -965,6 +966,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 									},
@@ -980,11 +982,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 									},
@@ -1459,6 +1463,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -1651,6 +1656,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 									},
@@ -1666,11 +1672,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 									},
@@ -2835,6 +2843,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -2900,6 +2909,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 									},
@@ -2915,11 +2925,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 									},
@@ -3548,6 +3560,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -3617,6 +3630,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 									},
@@ -3632,11 +3646,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 									},

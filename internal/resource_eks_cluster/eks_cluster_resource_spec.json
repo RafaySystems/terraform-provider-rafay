@@ -518,10 +518,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -576,10 +576,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -596,10 +596,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -616,10 +616,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -1465,10 +1465,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -1523,10 +1523,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -1543,10 +1543,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -1563,10 +1563,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -2487,10 +2487,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -2545,10 +2545,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -2565,10 +2565,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -2585,10 +2585,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -5240,10 +5240,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -5297,10 +5297,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -5317,10 +5317,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]
@@ -5337,10 +5337,10 @@
                                                                 "custom": {
                                                                     "imports": [
                                                                         {
-                                                                            "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
                                                                         }
                                                                     ],
-                                                                    "schema_definition": "int64planmodifier.UseStateForUnknown()"
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
                                                                 }
                                                             }
                                                         ]

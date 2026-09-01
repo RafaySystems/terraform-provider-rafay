@@ -133,6 +133,7 @@ resource "rafay_repositories" "tfdemorepository3" {
 - `agents` - (Block List) The repository agents. (see [below for nested schema](#nestedblock--spec--agents))
 - `credentials` - (Block List, Max: 1) The credentials for the repository. (See [below for nested schema](#nestedblock--spec--credentials))
 - `options` - (Block List, Max: 1) The options set for the repository. (See [below for nested schema](#nestedblock--spec--options))
+- `sharing` - (Block List, Max: 1) The sharing configuration for the repository. A repository can be shared with one or more projects. (See [below for nested schema](#nestedblock--spec--sharing))
 
 
 <a id="nestedblock--spec--agents"></a>
@@ -180,6 +181,25 @@ Use this block when authenticating via a GitHub App instead of username/password
 ***Required***
 
 - `name` - (String) The relative path of the CA certificate. 
+
+
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Optional***
+
+- `enabled` - (Boolean) If set to `true`, enables sharing the repository with other projects. 
+- `projects` - (Block Set) The list of projects this repository is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects))
+
+Note: `projects` cannot be set when `enabled` is `false`. A configuration that has `enabled = false` along with one or more `projects` blocks fails during `terraform plan` with the error `projects cannot be set when sharing is disabled`. To stop sharing the resource, set `enabled = false` and remove all the `projects` blocks.
+
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` - (String) The name of the project the repository is shared with. Use `*` to share the repository with all the projects in the organization. 
 
 
 <a id="nestedblock--timeouts"></a>

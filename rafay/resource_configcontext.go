@@ -24,6 +24,7 @@ func resourceConfigContext() *schema.Resource {
 		ReadContext:   resourceConfigContextRead,
 		UpdateContext: resourceConfigContextUpdate,
 		DeleteContext: resourceConfigContextDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceConfigContextImport,
 		},
@@ -224,6 +225,7 @@ func expandConfigContextSpec(p []any) (*eaaspb.ConfigContextSpec, error) {
 	}
 
 	in := p[0].(map[string]any)
+	var err error
 
 	if v, ok := in["envs"].([]any); ok && len(v) > 0 {
 		spec.Envs = expandEnvVariables(v)
@@ -238,7 +240,10 @@ func expandConfigContextSpec(p []any) (*eaaspb.ConfigContextSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		spec.Sharing = expandSharingSpec(v)
+		spec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil

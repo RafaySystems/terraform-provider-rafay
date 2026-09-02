@@ -72,6 +72,7 @@ func resourcePipeline() *schema.Resource {
 		ReadContext:   resourcePipelineRead,
 		UpdateContext: resourcePipelineUpdate,
 		DeleteContext: resourcePipelineDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourcePipelineImport,
 		},
@@ -552,7 +553,10 @@ func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["active"].(bool); ok {

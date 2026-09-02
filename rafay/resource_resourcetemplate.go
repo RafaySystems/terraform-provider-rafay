@@ -24,6 +24,7 @@ func resourceResourceTemplate() *schema.Resource {
 		ReadContext:   resourceTemplateRead,
 		UpdateContext: resourceTemplateUpdate,
 		DeleteContext: resourceTemplateDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceResourceTemplateImport,
 		},
@@ -250,7 +251,10 @@ func expandResourceTemplateSpec(p []any) (*eaaspb.ResourceTemplateSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		spec.Sharing = expandSharingSpec(v)
+		spec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ad, ok := in["artifact_driver"].([]any); ok && len(ad) > 0 {

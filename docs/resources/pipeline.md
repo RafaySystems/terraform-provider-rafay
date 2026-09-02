@@ -622,6 +622,8 @@ Note: For override type `HelmValues`, `paths` `repository` `revision` are requir
 - `enabled` (Boolean) Enables sharing for the resource.
 - `projects` (Block List) List of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects)).
 
+Note: `projects` cannot be set when `enabled` is `false`. A configuration that has `enabled = false` along with one or more `projects` blocks fails during `terraform plan` with the error `projects cannot be set when sharing is disabled`. To stop sharing the resource, set `enabled = false` and remove all the `projects` blocks.
+
 <a id="nestedblock--spec--sharing--projects"></a>
 
 ### Nested Schema for `spec.sharing.projects`

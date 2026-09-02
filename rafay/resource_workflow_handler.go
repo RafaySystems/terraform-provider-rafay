@@ -29,6 +29,7 @@ func resourceWorkflowHandler() *schema.Resource {
 		ReadContext:   resourceWorkflowHandlerRead,
 		UpdateContext: resourceWorkflowHandlerUpdate,
 		DeleteContext: resourceWorkflowHandlerDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceWorkflowHandlerImport,
 		},
@@ -227,13 +228,17 @@ func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 	}
 
 	in := p[0].(map[string]any)
+	var err error
 
 	if c, ok := in["config"].([]any); ok && len(c) > 0 {
 		spec.Config = expandWorkflowHandlerConfig(c)
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		spec.Sharing = expandSharingSpec(v)
+		spec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["inputs"].([]any); ok && len(v) > 0 {

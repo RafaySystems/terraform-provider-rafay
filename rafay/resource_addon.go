@@ -30,6 +30,7 @@ func ResourceAddon() *schema.Resource {
 		ReadContext:   resourceAddonRead,
 		UpdateContext: resourceAddonUpdate,
 		DeleteContext: resourceAddonDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceAddonImport,
 		},
@@ -285,6 +286,7 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
 		obj.Namespace = v
@@ -316,7 +318,10 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 		obj.Artifact = objArtifact
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return obj, nil

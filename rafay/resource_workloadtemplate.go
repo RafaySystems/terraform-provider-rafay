@@ -35,6 +35,7 @@ func resourceWorkloadTemplate() *schema.Resource {
 		ReadContext:   resourceWorkloadTemplateRead,
 		UpdateContext: resourceWorkloadTemplateUpdate,
 		DeleteContext: resourceWorkloadTemplateDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -328,6 +329,7 @@ func expandWorkloadTemplateSpec(p []interface{}) (*appspb.WorkloadTemplateSpec, 
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["artifact"].([]interface{}); ok {
 		objArtifact, err := ExpandArtifactSpec(v)
@@ -338,7 +340,10 @@ func expandWorkloadTemplateSpec(p []interface{}) (*appspb.WorkloadTemplateSpec, 
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return obj, nil

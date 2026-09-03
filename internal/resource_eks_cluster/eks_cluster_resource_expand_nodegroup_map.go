@@ -36,7 +36,7 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 		volSize := int(getInt64Value(v.VolumeSize))
 		ng.VolumeSize = &volSize
 	}
-	if !v.VolumeIops.IsNull() && !v.VolumeIops.IsUnknown() {
+	if !v.VolumeIops.IsNull() && !v.VolumeIops.IsUnknown() && getInt64Value(v.VolumeIops) > 0 {
 		volIops := int(getInt64Value(v.VolumeIops))
 		ng.VolumeIOPS = &volIops
 	}

@@ -56,7 +56,7 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 	if in.Version != "" {
 		v.Version = types.StringValue(in.Version)
 	}
-	if in.VolumeIOPS != nil {
+	if in.VolumeIOPS != nil && *in.VolumeIOPS > 0 {
 		v.VolumeIops = types.Int64Value(int64(*in.VolumeIOPS))
 	}
 	if in.VolumeSize != nil {

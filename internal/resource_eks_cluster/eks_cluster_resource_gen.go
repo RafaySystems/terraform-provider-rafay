@@ -5,10 +5,12 @@ package resource_eks_cluster
 import (
 	"context"
 	"fmt"
+	"github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -714,6 +716,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -965,8 +971,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -980,13 +990,21 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -1459,6 +1477,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -1651,8 +1673,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -1666,13 +1692,21 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -2835,6 +2869,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -2900,8 +2938,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -2915,13 +2957,21 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -3548,6 +3598,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -3617,8 +3671,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -3632,13 +3690,21 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,

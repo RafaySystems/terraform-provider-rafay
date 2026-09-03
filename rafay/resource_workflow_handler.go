@@ -253,7 +253,6 @@ func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 		spec.Readme = v
 	}
 
-	var err error
 	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
 		spec.Outputs, err = expandWorkflowHandlerOutputs(v)
 		if err != nil {

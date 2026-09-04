@@ -2,14 +2,14 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "bharath-eks-clustertest2"
+      name    = "eks-cluster-1"
       project = "defaultproject"
     }
     spec {
       type              = "eks"
       blueprint         = "default"
       blueprint_version = "Latest"
-      cloud_provider    = "bharat-eks"
+      cloud_provider    = "aws-eks-role"
       cni_provider      = "aws-cni"
       proxy_config      = {}
     }
@@ -18,12 +18,12 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "bharath-eks-clustertest2"
+      name    = "eks-cluster-1"
       region  = "us-west-2"
       version = "1.32"
       tags = {
         env   = "dev"
-        email = "bharath.reddy@rafay.co"
+        email = "<email>"
       }
     }
     addons_config {

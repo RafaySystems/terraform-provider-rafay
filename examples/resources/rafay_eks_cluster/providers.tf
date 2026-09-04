@@ -2,14 +2,14 @@ terraform {
   required_providers {
     rafay = {
       version = ">= 0.1"
-      source  = "registry.terraform.io/rafay/rafay"
+      source  = "registry.terraform.io/RafaySystems/rafay"
     }
   }
 }
 
 variable "rafay_config_file" {
   description = "rafay provider config file for authentication"
-  default     = "/home/ujwal/.rafay/cli/config.json"
+  default     = "<rafay-config-json-file>"
   sensitive   = true
 }
 

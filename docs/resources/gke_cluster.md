@@ -950,6 +950,7 @@ Optional:
 
 - `enable_integrity_monitoring` (Boolean) Integrity monitoring lets you monitor and verify the runtime boot integrity of your shielded nodes using Cloud Monitoring
 - `enable_secure_boot` (Boolean) Secure boot helps protect your nodes against boot-level and kernel-level malware and rootkits
+- `workload_metadata_mode` (String) GKE Metadata Server mode for this node pool. Valid values: `gce_metadata`, `gke_metadata`. `gke_metadata` requires cluster Workload Identity. Leave unset to use the GKE default.
 
 
 <a id="nestedblock--spec--config--node_pools--auto_scaling"></a>

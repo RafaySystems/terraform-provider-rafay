@@ -677,64 +677,67 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	oldClusterBlueprint := cluster_resp.ClusterBlueprint
-	// read the blueprint name
-	if d.Get("blueprint").(string) != "" {
-		cluster_resp.ClusterBlueprint = d.Get("blueprint").(string)
-	}
-	// read the blueprint version
-	oldClusterBlueprintVersion := cluster_resp.ClusterBlueprintVersion
-	if d.Get("blueprint_version").(string) != "" {
-		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
-	}
-	oldProxyConfig := cluster_resp.ProxyConfig
-	newProxyConfig := expandProxyConfigImportCluster(d.Get("proxy_config"))
-	cluster_resp.ProxyConfig = newProxyConfig
+	// Only call UpdateCluster when the fields it manages actually changed.
+	// Calling it unconditionally causes the backend to asynchronously reprocess
+	// the cluster object (which carries the old labels), clobbering any label
+	// update made by updateClusterLabels immediately after.
+	if d.HasChanges("blueprint", "blueprint_version", "proxy_config", "system_components_placement") {
+		oldClusterBlueprint := cluster_resp.ClusterBlueprint
+		if d.Get("blueprint").(string) != "" {
+			cluster_resp.ClusterBlueprint = d.Get("blueprint").(string)
+		}
+		oldClusterBlueprintVersion := cluster_resp.ClusterBlueprintVersion
+		if d.Get("blueprint_version").(string) != "" {
+			cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
+		}
+		oldProxyConfig := cluster_resp.ProxyConfig
+		newProxyConfig := expandProxyConfigImportCluster(d.Get("proxy_config"))
+		cluster_resp.ProxyConfig = newProxyConfig
+		cluster_resp.SystemComponentsPlacement = expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
 
-	// update system_components_placement if provided
-	cluster_resp.SystemComponentsPlacement = expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
-	//update cluster to send updated cluster details to core
-	err = cluster.UpdateCluster(cluster_resp, uaDef)
-	if err != nil {
-		log.Printf("cluster was not updated, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-
-	//publish cluster bp
-	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) {
-		log.Printf("publishing cluster blueprint")
-		err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
+		err = cluster.UpdateCluster(cluster_resp, uaDef)
 		if err != nil {
 			log.Printf("cluster was not updated, error %s", err.Error())
 			return diag.FromErr(err)
 		}
-	}
 
-	// update labels
-	labels := map[string]string{}
-	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
-		for k, v := range labelsX {
-			labels[k] = v.(string)
-		}
-	}
-	existingLabels, err := getClusterlabels(cluster_resp.Name, cluster_resp.ProjectID)
-	if err != nil {
-		log.Printf("error getting cluster v2 labels: %s", err.Error())
-		return diag.FromErr(err)
-	}
-
-	for k := range labels {
-		if strings.HasPrefix(k, "rafay.dev/") {
-			if _, ok := existingLabels[k]; !ok {
-				errMsg := "cannot edit system labels during update operation"
-				log.Printf("error setting labels: %s", errMsg)
-				return diag.Errorf("error setting labels: %s", errMsg)
+		if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) {
+			log.Printf("publishing cluster blueprint")
+			err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
+			if err != nil {
+				log.Printf("cluster was not updated, error %s", err.Error())
+				return diag.FromErr(err)
 			}
 		}
 	}
-	if err := updateClusterLabels(cluster_resp.Name, cluster_resp.ID, cluster_resp.ProjectID, labels); err != nil {
-		log.Printf("error setting labels on the cluster: %s", err.Error())
-		return diag.FromErr(err)
+
+	// update labels only when they changed
+	if d.HasChange("labels") {
+		labels := map[string]string{}
+		if labelsX, ok := d.Get("labels").(map[string]interface{}); ok {
+			for k, v := range labelsX {
+				labels[k] = v.(string)
+			}
+		}
+		existingLabels, err := getClusterlabels(cluster_resp.Name, cluster_resp.ProjectID)
+		if err != nil {
+			log.Printf("error getting cluster v2 labels: %s", err.Error())
+			return diag.FromErr(err)
+		}
+
+		for k := range labels {
+			if strings.HasPrefix(k, "rafay.dev/") {
+				if _, ok := existingLabels[k]; !ok {
+					errMsg := "cannot edit system labels during update operation"
+					log.Printf("error setting labels: %s", errMsg)
+					return diag.Errorf("error setting labels: %s", errMsg)
+				}
+			}
+		}
+		if err := updateClusterLabels(cluster_resp.Name, cluster_resp.ID, cluster_resp.ProjectID, labels); err != nil {
+			log.Printf("error setting labels on the cluster: %s", err.Error())
+			return diag.FromErr(err)
+		}
 	}
 
 	return diags

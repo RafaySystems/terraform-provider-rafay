@@ -23,6 +23,10 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
       "rafay.dev/overrideScope" = "clusterLabels"
       "rafay.dev/overrideType"  = "valuesFile"
     }
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
@@ -351,6 +355,11 @@ resource "rafay_cluster_override" "override-with-addon-version-regex" {
     Note: Same labels are required as shown in the examples.
   - For YAML based "rafay.dev/overrideType" : "manifestsFile"
   - For HELM based "rafay.dev/overrideType" : "valuesFile"
+  
+***Optional***
+
+- `annotations` - (Map) A map of string keys and values to attach arbitrary, non-identifying metadata to objects for consumption by humans, tools, and libraries.
+---
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`

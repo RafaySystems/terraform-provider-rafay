@@ -3,6 +3,10 @@ resource "rafay_addon" "tfdemoaddon1" {
   metadata {
     name    = "tfdemoaddon1"
     project = "terraform"
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     namespace = "tfdemonamespace1"

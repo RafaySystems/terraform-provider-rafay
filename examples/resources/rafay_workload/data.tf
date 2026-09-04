@@ -3,6 +3,10 @@ data "rafay_workload" "testworkload" {
   metadata {
     name    = "testworkload"
     project = "benny-cilium-test"
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
 }
 

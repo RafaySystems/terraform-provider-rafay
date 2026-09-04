@@ -19,6 +19,10 @@ resource "rafay_blueprint" "custom-blueprint" {
   metadata {
     name    = "custom-blueprint"
     project = "terraform"
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     version = "v0"
@@ -369,6 +373,9 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `name` - (String) The name of the resource. This must be unique to the organization. 
 - `project` - (String) The Rafay project(s) the resource belongs to. 
 
+***Optional***
+
+- `annotations` - (Map) A map of string keys and values to attach arbitrary, non-identifying metadata to objects for consumption by humans, tools, and libraries.
 ---
 
 <a id="nestedblock--spec"></a>

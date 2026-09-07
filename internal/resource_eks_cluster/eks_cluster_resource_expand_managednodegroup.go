@@ -44,7 +44,7 @@ func (v ManagedNodegroupsValue) Expand(ctx context.Context) (*rafay.ManagedNodeG
 		volSize := int(getInt64Value(v.VolumeSize))
 		mng.VolumeSize = &volSize
 	}
-	if !v.VolumeIops.IsNull() && !v.VolumeIops.IsUnknown() {
+	if !v.VolumeIops.IsNull() && !v.VolumeIops.IsUnknown() && getInt64Value(v.VolumeIops) > 0 {
 		volIops := int(getInt64Value(v.VolumeIops))
 		mng.VolumeIOPS = &volIops
 	}

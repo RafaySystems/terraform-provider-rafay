@@ -747,6 +747,10 @@ func expandCustomAddons(p []interface{}) []*infrapb.BlueprintAddon {
 			log.Println("expandCustomAddons depends_on ", obj.DependsOn)
 		}
 
+		if v, ok := in["is_optional"].(bool); ok {
+			obj.IsOptional = v
+		}
+
 		out[i] = &obj
 
 	}
@@ -1866,6 +1870,8 @@ func flatteCustomAddons(input []*infrapb.BlueprintAddon, p []interface{}) []inte
 		if len(in.DependsOn) > 0 {
 			obj["depends_on"] = toArrayInterface(in.DependsOn)
 		}
+
+		obj["is_optional"] = in.IsOptional
 
 		out[i] = &obj
 	}

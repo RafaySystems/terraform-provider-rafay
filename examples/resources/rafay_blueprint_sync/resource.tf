@@ -39,3 +39,13 @@ resource "rafay_blueprint_sync" "cluster5" {
   force_sync   = true
   addons       = ["addon1", "addon2"]
 }
+
+# Opt into optional blueprint addons when publishing. Addons marked
+# is_optional on the blueprint are skipped unless listed here.
+resource "rafay_blueprint_sync" "cluster6" {
+  cluster_name      = "demo-cluster6"
+  project           = "defaultproject"
+  blueprint_name    = "custom-bp"
+  blueprint_version = "v1"
+  optional_addons   = ["tfdemoaddon4", "tfdemoaddon5"]
+}

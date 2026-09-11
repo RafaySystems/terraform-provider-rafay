@@ -415,6 +415,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Optional***
 
 - `depends_on` - (List of String) A list of add-ons the current add-on depends on. 
+- `is_optional` - (Bool) If true, the add-on is not deployed by default and can be selected during blueprint sync. 
 
 <a id="nestedblock--spec--components_criticality"></a>
 ### Nested Schema for `spec.components_criticality`

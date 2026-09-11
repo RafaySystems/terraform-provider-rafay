@@ -20,9 +20,9 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
-	_ resource.Resource                     = &BlueprintSyncResource{}
-	_ resource.ResourceWithModifyPlan       = &BlueprintSyncResource{}
-	_ resource.ResourceWithValidateConfig   = &BlueprintSyncResource{}
+	_ resource.Resource                   = &BlueprintSyncResource{}
+	_ resource.ResourceWithModifyPlan     = &BlueprintSyncResource{}
+	_ resource.ResourceWithValidateConfig = &BlueprintSyncResource{}
 )
 
 // partialSuccessStatus is a terminal ClusterBlueprintSync condition status
@@ -51,6 +51,7 @@ type BlueprintSyncModel struct {
 	BlueprintVersion types.String `tfsdk:"blueprint_version"`
 	ForceSync        types.Bool   `tfsdk:"force_sync"`
 	Addons           types.List   `tfsdk:"addons"`
+	OptionalAddons   types.List   `tfsdk:"optional_addons"`
 }
 
 func (r *BlueprintSyncResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -103,6 +104,12 @@ func (r *BlueprintSyncResource) Schema(ctx context.Context, req resource.SchemaR
 				WriteOnly:   true,
 				Description: "Subset of blueprint addons to sync. Only valid with force_sync=true. When unset, the full blueprint is synced. This value is never stored in state.",
 			},
+			"optional_addons": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				WriteOnly:   true,
+				Description: "Optional blueprint addons to deploy on this cluster when publishing. Addons marked optional on the blueprint are skipped unless listed here. This value is never stored in state.",
+			},
 		},
 	}
 }
@@ -153,24 +160,24 @@ func (r *BlueprintSyncResource) ModifyPlan(ctx context.Context, req resource.Mod
 	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("id"), types.StringUnknown())...)
 }
 
-// readAddonsFromConfig extracts the write-only addons list from config.
-// Returns nil when unset or empty (full-blueprint sync).
-func readAddonsFromConfig(ctx context.Context, config tfsdk.Config) ([]string, diag.Diagnostics) {
-	var addonsAttr types.List
-	diags := config.GetAttribute(ctx, path.Root("addons"), &addonsAttr)
+// readStringListFromConfig extracts a write-only string list from config.
+// Returns nil when the attribute is unset or unknown.
+func readStringListFromConfig(ctx context.Context, config tfsdk.Config, attr string) ([]string, diag.Diagnostics) {
+	var listAttr types.List
+	diags := config.GetAttribute(ctx, path.Root(attr), &listAttr)
 	if diags.HasError() {
 		return nil, diags
 	}
-	if addonsAttr.IsNull() || addonsAttr.IsUnknown() {
+	if listAttr.IsNull() || listAttr.IsUnknown() {
 		return nil, diags
 	}
 
-	var addons []string
-	diags.Append(addonsAttr.ElementsAs(ctx, &addons, false)...)
+	var items []string
+	diags.Append(listAttr.ElementsAs(ctx, &items, false)...)
 	if diags.HasError() {
 		return nil, diags
 	}
-	return addons, diags
+	return items, diags
 }
 
 // blueprintSyncOutcome carries the edge/project IDs needed to poll for sync
@@ -210,16 +217,16 @@ func isBlueprintSyncInProgress(edgeID, projectID string) (bool, error) {
 // assigned blueprint if blueprintName/blueprintVersion differ from what's
 // currently set, and publishes a blueprint sync.
 //
-// When addons is non-empty, a selective sync is published via
-// PublishBlueprintCluster (requires forceSync=true, enforced by
+// When addons or optionalAddons is non-empty, a selective sync is published
+// via PublishBlueprintCluster (addons requires forceSync=true, enforced by
 // ValidateConfig). Otherwise the full-blueprint PublishClusterBlueprint
 // path is used.
 //
 // The returned outcome's observedBlueprint/observedVersion always reflect
 // what is actually assigned on the cluster: the requested values only if the
 // update call succeeded, otherwise whatever was already there.
-func triggerBlueprintSync(clusterName, projectName string, forceSync bool, blueprintName, blueprintVersion string, addons []string) (*blueprintSyncOutcome, error) {
-	log.Printf("blueprint sync starting for cluster: %s, project: %s, force_sync: %v, addons: %v", clusterName, projectName, forceSync, addons)
+func triggerBlueprintSync(clusterName, projectName string, forceSync bool, blueprintName, blueprintVersion string, addons, optionalAddons []string) (*blueprintSyncOutcome, error) {
+	log.Printf("blueprint sync starting for cluster: %s, project: %s, force_sync: %v, addons: %v, optional_addons: %v", clusterName, projectName, forceSync, addons, optionalAddons)
 
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
@@ -275,8 +282,8 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 		outcome.observedVersion = clusterResp.ClusterBlueprintVersion
 	}
 
-	if len(addons) > 0 {
-		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons); err != nil {
+	if len(addons) > 0 || len(optionalAddons) > 0 {
+		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons, optionalAddons); err != nil {
 			return outcome, fmt.Errorf("failed to publish blueprint for cluster %q: %w", clusterName, err)
 		}
 	} else {
@@ -390,15 +397,22 @@ func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	// force_sync and addons are write-only: they're never in state, so they
-	// must be read from the raw config, not the plan/state model above.
+	// force_sync, addons, and optional_addons are write-only: they're never
+	// in state, so they must be read from the raw config, not the
+	// plan/state model above.
 	var forceSync types.Bool
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("force_sync"), &forceSync)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	addons, diags := readAddonsFromConfig(ctx, req.Config)
+	addons, diags := readStringListFromConfig(ctx, req.Config, "addons")
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	optionalAddons, diags := readStringListFromConfig(ctx, req.Config, "optional_addons")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -407,7 +421,7 @@ func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateR
 	clusterName := plan.ClusterName.ValueString()
 	projectName := plan.Project.ValueString()
 
-	outcome, err := triggerBlueprintSync(clusterName, projectName, forceSync.ValueBool(), plan.BlueprintName.ValueString(), plan.BlueprintVersion.ValueString(), addons)
+	outcome, err := triggerBlueprintSync(clusterName, projectName, forceSync.ValueBool(), plan.BlueprintName.ValueString(), plan.BlueprintVersion.ValueString(), addons, optionalAddons)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to sync blueprint for cluster %q: %s", clusterName, err))
 		// Not calling resp.State.Set leaves the resource absent from
@@ -430,6 +444,7 @@ func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateR
 	// Write-only attributes must not be stored in state.
 	plan.ForceSync = types.BoolNull()
 	plan.Addons = types.ListNull(types.StringType)
+	plan.OptionalAddons = types.ListNull(types.StringType)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -458,7 +473,13 @@ func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	addons, diags := readAddonsFromConfig(ctx, req.Config)
+	addons, diags := readStringListFromConfig(ctx, req.Config, "addons")
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	optionalAddons, diags := readStringListFromConfig(ctx, req.Config, "optional_addons")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -467,7 +488,7 @@ func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateR
 	clusterName := plan.ClusterName.ValueString()
 	projectName := plan.Project.ValueString()
 
-	outcome, err := triggerBlueprintSync(clusterName, projectName, forceSync.ValueBool(), plan.BlueprintName.ValueString(), plan.BlueprintVersion.ValueString(), addons)
+	outcome, err := triggerBlueprintSync(clusterName, projectName, forceSync.ValueBool(), plan.BlueprintName.ValueString(), plan.BlueprintVersion.ValueString(), addons, optionalAddons)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to sync blueprint for cluster %q: %s", clusterName, err))
 		// resp.State was pre-populated by the framework with the prior
@@ -491,6 +512,7 @@ func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateR
 	// Write-only attributes must not be stored in state.
 	plan.ForceSync = types.BoolNull()
 	plan.Addons = types.ListNull(types.StringType)
+	plan.OptionalAddons = types.ListNull(types.StringType)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

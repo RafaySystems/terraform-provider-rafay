@@ -2449,7 +2449,8 @@ func (v ZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.ZonalShiftCon
 	}
 
 	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
-		zsc.Enabled = getBoolValue(v.Enabled)
+		b := getBoolValue(v.Enabled)
+		zsc.Enabled = &b
 	}
 
 	return &zsc, diags
@@ -2479,7 +2480,8 @@ func (v AutoZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.AutoZonal
 	}
 
 	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
-		azsc.Enabled = getBoolValue(v.Enabled)
+		b := getBoolValue(v.Enabled)
+		azsc.Enabled = &b
 	}
 
 	listFromListValue := func(lv basetypes.ListValue) []string {

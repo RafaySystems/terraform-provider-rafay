@@ -161,6 +161,10 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec, state SpecVa
 		v.BlueprintVersion = types.StringNull()
 	}
 
+	// the v1 cluster spec has no optional add-on selection to read back, so the
+	// configured value is carried through; dropping it would be a perpetual diff
+	v.OptionalAddons = state.OptionalAddons
+
 	if in.CloudProvider != "" {
 		v.CloudProvider = types.StringValue(in.CloudProvider)
 	} else {

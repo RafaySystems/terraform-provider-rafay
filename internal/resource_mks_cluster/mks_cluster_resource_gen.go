@@ -80,6 +80,12 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 							"name": schema.StringAttribute{
 								Required: true,
 							},
+							"optional_addons": schema.ListAttribute{
+								ElementType:         types.StringType,
+								Optional:            true,
+								Description:         "Names of the blueprint's optional add-ons to deploy on this cluster",
+								MarkdownDescription: "Names of the blueprint's optional add-ons to deploy on this cluster",
+							},
 							"version": schema.StringAttribute{
 								Optional:            true,
 								Computed:            true,
@@ -2139,6 +2145,24 @@ func (t BlueprintType) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 			fmt.Sprintf(`name expected to be basetypes.StringValue, was: %T`, nameAttribute))
 	}
 
+	optionalAddonsAttribute, ok := attributes["optional_addons"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`optional_addons is missing from object`)
+
+		return nil, diags
+	}
+
+	optionalAddonsVal, ok := optionalAddonsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`optional_addons expected to be basetypes.ListValue, was: %T`, optionalAddonsAttribute))
+	}
+
 	versionAttribute, ok := attributes["version"]
 
 	if !ok {
@@ -2162,9 +2186,10 @@ func (t BlueprintType) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 	}
 
 	return BlueprintValue{
-		Name:    nameVal,
-		Version: versionVal,
-		state:   attr.ValueStateKnown,
+		Name:           nameVal,
+		OptionalAddons: optionalAddonsVal,
+		Version:        versionVal,
+		state:          attr.ValueStateKnown,
 	}, diags
 }
 
@@ -2249,6 +2274,24 @@ func NewBlueprintValue(attributeTypes map[string]attr.Type, attributes map[strin
 			fmt.Sprintf(`name expected to be basetypes.StringValue, was: %T`, nameAttribute))
 	}
 
+	optionalAddonsAttribute, ok := attributes["optional_addons"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`optional_addons is missing from object`)
+
+		return NewBlueprintValueUnknown(), diags
+	}
+
+	optionalAddonsVal, ok := optionalAddonsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`optional_addons expected to be basetypes.ListValue, was: %T`, optionalAddonsAttribute))
+	}
+
 	versionAttribute, ok := attributes["version"]
 
 	if !ok {
@@ -2272,9 +2315,10 @@ func NewBlueprintValue(attributeTypes map[string]attr.Type, attributes map[strin
 	}
 
 	return BlueprintValue{
-		Name:    nameVal,
-		Version: versionVal,
-		state:   attr.ValueStateKnown,
+		Name:           nameVal,
+		OptionalAddons: optionalAddonsVal,
+		Version:        versionVal,
+		state:          attr.ValueStateKnown,
 	}, diags
 }
 
@@ -2346,25 +2390,29 @@ func (t BlueprintType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = BlueprintValue{}
 
 type BlueprintValue struct {
-	Name    basetypes.StringValue `tfsdk:"name"`
-	Version basetypes.StringValue `tfsdk:"version"`
-	state   attr.ValueState
+	Name           basetypes.StringValue `tfsdk:"name"`
+	OptionalAddons basetypes.ListValue   `tfsdk:"optional_addons"`
+	Version        basetypes.StringValue `tfsdk:"version"`
+	state          attr.ValueState
 }
 
 func (v BlueprintValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 2)
+	attrTypes := make(map[string]tftypes.Type, 3)
 
 	var val tftypes.Value
 	var err error
 
 	attrTypes["name"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["optional_addons"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["version"] = basetypes.StringType{}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 2)
+		vals := make(map[string]tftypes.Value, 3)
 
 		val, err = v.Name.ToTerraformValue(ctx)
 
@@ -2373,6 +2421,14 @@ func (v BlueprintValue) ToTerraformValue(ctx context.Context) (tftypes.Value, er
 		}
 
 		vals["name"] = val
+
+		val, err = v.OptionalAddons.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["optional_addons"] = val
 
 		val, err = v.Version.ToTerraformValue(ctx)
 
@@ -2411,8 +2467,33 @@ func (v BlueprintValue) String() string {
 func (v BlueprintValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	var optionalAddonsVal basetypes.ListValue
+	switch {
+	case v.OptionalAddons.IsUnknown():
+		optionalAddonsVal = types.ListUnknown(types.StringType)
+	case v.OptionalAddons.IsNull():
+		optionalAddonsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		optionalAddonsVal, d = types.ListValue(types.StringType, v.OptionalAddons.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"name": basetypes.StringType{},
+			"optional_addons": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"version": basetypes.StringType{},
+		}), diags
+	}
+
 	attributeTypes := map[string]attr.Type{
-		"name":    basetypes.StringType{},
+		"name": basetypes.StringType{},
+		"optional_addons": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 		"version": basetypes.StringType{},
 	}
 
@@ -2427,8 +2508,9 @@ func (v BlueprintValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"name":    v.Name,
-			"version": v.Version,
+			"name":            v.Name,
+			"optional_addons": optionalAddonsVal,
+			"version":         v.Version,
 		})
 
 	return objVal, diags
@@ -2453,6 +2535,10 @@ func (v BlueprintValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.OptionalAddons.Equal(other.OptionalAddons) {
+		return false
+	}
+
 	if !v.Version.Equal(other.Version) {
 		return false
 	}
@@ -2470,7 +2556,10 @@ func (v BlueprintValue) Type(ctx context.Context) attr.Type {
 
 func (v BlueprintValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"name":    basetypes.StringType{},
+		"name": basetypes.StringType{},
+		"optional_addons": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 		"version": basetypes.StringType{},
 	}
 }

@@ -1051,6 +1051,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 - `blueprint` - (String) The blueprint associated with the cluster. A blueprint defines the configuration and policy. Use blueprints to help standardize cluster configurations. 
 - `blueprint_version` - (String) The blueprint version associated with the cluster. 
+- `optional_addons` - (List of String) Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked `is_optional` on the blueprint are skipped unless listed here.
 - `cloud_provider` - (String) The cloud credentials provider used to create and manage the cluster. 
 - `cni_provider` - (String) The container network interface (CNI) provider used to specify different network connectivity options for the cluster. 
 - `type` - (String) The cluster type. The supported value is `eks`. 

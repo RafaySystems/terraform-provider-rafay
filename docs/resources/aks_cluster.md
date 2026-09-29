@@ -293,6 +293,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 - `blueprint` - (String) The blueprint used with the cluster. The default is `default-aks`.
 - `blueprintversion` - (String) The blueprint version used with the cluster. The default is the latest version.
+- `optional_addons` - (List of String) Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked `is_optional` on the blueprint are skipped unless listed here.
 
 <a id="nestedblock--spec--system_components_placement"></a>
 

@@ -102,6 +102,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "Role ARN of the linked account.",
 										MarkdownDescription: "Role ARN of the linked account.",
 									},
+									"optional_addons": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "Names of the blueprint's optional add-ons to deploy on this cluster.",
+										MarkdownDescription: "Names of the blueprint's optional add-ons to deploy on this cluster.",
+									},
 									"proxy_config": schema.MapAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
@@ -5618,6 +5624,24 @@ func (t SpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 			fmt.Sprintf(`cross_account_role_arn expected to be basetypes.StringValue, was: %T`, crossAccountRoleArnAttribute))
 	}
 
+	optionalAddonsAttribute, ok := attributes["optional_addons"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`optional_addons is missing from object`)
+
+		return nil, diags
+	}
+
+	optionalAddonsVal, ok := optionalAddonsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`optional_addons expected to be basetypes.ListValue, was: %T`, optionalAddonsAttribute))
+	}
+
 	proxyConfigAttribute, ok := attributes["proxy_config"]
 
 	if !ok {
@@ -5701,6 +5725,7 @@ func (t SpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		CniParams:                 cniParamsVal,
 		CniProvider:               cniProviderVal,
 		CrossAccountRoleArn:       crossAccountRoleArnVal,
+		OptionalAddons:            optionalAddonsVal,
 		ProxyConfig:               proxyConfigVal,
 		Sharing:                   sharingVal,
 		SystemComponentsPlacement: systemComponentsPlacementVal,
@@ -5880,6 +5905,24 @@ func NewSpecValue(attributeTypes map[string]attr.Type, attributes map[string]att
 			fmt.Sprintf(`cross_account_role_arn expected to be basetypes.StringValue, was: %T`, crossAccountRoleArnAttribute))
 	}
 
+	optionalAddonsAttribute, ok := attributes["optional_addons"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`optional_addons is missing from object`)
+
+		return NewSpecValueUnknown(), diags
+	}
+
+	optionalAddonsVal, ok := optionalAddonsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`optional_addons expected to be basetypes.ListValue, was: %T`, optionalAddonsAttribute))
+	}
+
 	proxyConfigAttribute, ok := attributes["proxy_config"]
 
 	if !ok {
@@ -5963,6 +6006,7 @@ func NewSpecValue(attributeTypes map[string]attr.Type, attributes map[string]att
 		CniParams:                 cniParamsVal,
 		CniProvider:               cniProviderVal,
 		CrossAccountRoleArn:       crossAccountRoleArnVal,
+		OptionalAddons:            optionalAddonsVal,
 		ProxyConfig:               proxyConfigVal,
 		Sharing:                   sharingVal,
 		SystemComponentsPlacement: systemComponentsPlacementVal,
@@ -6045,6 +6089,7 @@ type SpecValue struct {
 	CniParams                 basetypes.ListValue   `tfsdk:"cni_params"`
 	CniProvider               basetypes.StringValue `tfsdk:"cni_provider"`
 	CrossAccountRoleArn       basetypes.StringValue `tfsdk:"cross_account_role_arn"`
+	OptionalAddons            basetypes.ListValue   `tfsdk:"optional_addons"`
 	ProxyConfig               basetypes.MapValue    `tfsdk:"proxy_config"`
 	Sharing                   basetypes.ListValue   `tfsdk:"sharing"`
 	SystemComponentsPlacement basetypes.ListValue   `tfsdk:"system_components_placement"`
@@ -6053,7 +6098,7 @@ type SpecValue struct {
 }
 
 func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 10)
+	attrTypes := make(map[string]tftypes.Type, 11)
 
 	var val tftypes.Value
 	var err error
@@ -6066,6 +6111,9 @@ func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	}.TerraformType(ctx)
 	attrTypes["cni_provider"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["cross_account_role_arn"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["optional_addons"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["proxy_config"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
@@ -6081,7 +6129,7 @@ func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 10)
+		vals := make(map[string]tftypes.Value, 11)
 
 		val, err = v.Blueprint.ToTerraformValue(ctx)
 
@@ -6130,6 +6178,14 @@ func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 		}
 
 		vals["cross_account_role_arn"] = val
+
+		val, err = v.OptionalAddons.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["optional_addons"] = val
 
 		val, err = v.ProxyConfig.ToTerraformValue(ctx)
 
@@ -6279,6 +6335,44 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		)
 	}
 
+	var optionalAddonsVal basetypes.ListValue
+	switch {
+	case v.OptionalAddons.IsUnknown():
+		optionalAddonsVal = types.ListUnknown(types.StringType)
+	case v.OptionalAddons.IsNull():
+		optionalAddonsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		optionalAddonsVal, d = types.ListValue(types.StringType, v.OptionalAddons.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"blueprint":         basetypes.StringType{},
+			"blueprint_version": basetypes.StringType{},
+			"cloud_provider":    basetypes.StringType{},
+			"cni_params": basetypes.ListType{
+				ElemType: CniParamsValue{}.Type(ctx),
+			},
+			"cni_provider":           basetypes.StringType{},
+			"cross_account_role_arn": basetypes.StringType{},
+			"optional_addons": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"proxy_config": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"sharing": basetypes.ListType{
+				ElemType: SharingValue{}.Type(ctx),
+			},
+			"system_components_placement": basetypes.ListType{
+				ElemType: SystemComponentsPlacementValue{}.Type(ctx),
+			},
+			"type": basetypes.StringType{},
+		}), diags
+	}
+
 	var proxyConfigVal basetypes.MapValue
 	switch {
 	case v.ProxyConfig.IsUnknown():
@@ -6301,6 +6395,9 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 			},
 			"cni_provider":           basetypes.StringType{},
 			"cross_account_role_arn": basetypes.StringType{},
+			"optional_addons": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"proxy_config": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -6323,6 +6420,9 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		},
 		"cni_provider":           basetypes.StringType{},
 		"cross_account_role_arn": basetypes.StringType{},
+		"optional_addons": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 		"proxy_config": basetypes.MapType{
 			ElemType: types.StringType,
 		},
@@ -6352,6 +6452,7 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 			"cni_params":                  cniParams,
 			"cni_provider":                v.CniProvider,
 			"cross_account_role_arn":      v.CrossAccountRoleArn,
+			"optional_addons":             optionalAddonsVal,
 			"proxy_config":                proxyConfigVal,
 			"sharing":                     sharing,
 			"system_components_placement": systemComponentsPlacement,
@@ -6400,6 +6501,10 @@ func (v SpecValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.OptionalAddons.Equal(other.OptionalAddons) {
+		return false
+	}
+
 	if !v.ProxyConfig.Equal(other.ProxyConfig) {
 		return false
 	}
@@ -6437,6 +6542,9 @@ func (v SpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"cni_provider":           basetypes.StringType{},
 		"cross_account_role_arn": basetypes.StringType{},
+		"optional_addons": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 		"proxy_config": basetypes.MapType{
 			ElemType: types.StringType,
 		},

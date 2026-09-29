@@ -98,6 +98,16 @@
                                                 }
                                             },
                                             {
+                                                "name": "optional_addons",
+                                                "list": {
+                                                    "description": "Names of the blueprint's optional add-ons to deploy on this cluster.",
+                                                    "computed_optional_required": "optional",
+                                                    "element_type": {
+                                                        "string": {}
+                                                    }
+                                                }
+                                            },
+                                            {
                                                 "name": "cross_account_role_arn",
                                                 "string": {
                                                     "description": "Role ARN of the linked account.",

@@ -571,6 +571,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 **Optional**
 
 - `version` (String) Version of the blueprint
+- `optional_addons` (List of String) Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked `is_optional` on the blueprint are skipped unless listed here.
 
 <a id="nestedatt--spec--config"></a>
 

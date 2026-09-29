@@ -1315,6 +1315,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 
 - `name` - (String) The name of the blueprint.
 - `version` - (String) The version of the blueprint.
+- `optional_addons` - (List of String) Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked `is_optional` on the blueprint are skipped unless listed here.
 
 <a id="nestedblock--timeouts"></a>
 

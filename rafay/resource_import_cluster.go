@@ -65,6 +65,12 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"optional_addons": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+			},
 			"location": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -507,6 +513,16 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 
+	// the v1 cluster spec carries no optional add-on selection, so publishing
+	// the blueprint is the only way it reaches the backend
+	if optionalAddons := toArrayString(d.Get("optional_addons").([]interface{})); len(optionalAddons) > 0 {
+		err = cluster.PublishBlueprintCluster(cluster_resp.Name, project_id, cluster_resp.ClusterBlueprint, cluster_resp.ClusterBlueprintVersion, false, nil, optionalAddons)
+		if err != nil {
+			log.Printf("selecting optional addons failed, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	}
+
 	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
 		labels := map[string]string{}
 		for k, v := range labelsX {
@@ -701,9 +717,16 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//publish cluster bp
-	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) {
+	optionalAddons := toArrayString(d.Get("optional_addons").([]interface{}))
+	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) || d.HasChange("optional_addons") {
 		log.Printf("publishing cluster blueprint")
-		err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
+		if len(optionalAddons) > 0 || d.HasChange("optional_addons") {
+			// PublishClusterBlueprint has no field for the selection, and an
+			// empty list here is what deselects every optional add-on
+			err = cluster.PublishBlueprintCluster(d.Get("clustername").(string), project_id, cluster_resp.ClusterBlueprint, cluster_resp.ClusterBlueprintVersion, false, nil, optionalAddons)
+		} else {
+			err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
+		}
 		if err != nil {
 			log.Printf("cluster was not updated, error %s", err.Error())
 			return diag.FromErr(err)

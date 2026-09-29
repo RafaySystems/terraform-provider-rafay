@@ -49,6 +49,26 @@ func getInt64Value(tfInt types.Int64) int64 {
 	return tfInt.ValueInt64()
 }
 
+func getStringSlice(ctx context.Context, tfList types.List) []string {
+	if tfList.IsNull() || tfList.IsUnknown() {
+		return nil
+	}
+	out := make([]string, 0, len(tfList.Elements()))
+	tfList.ElementsAs(ctx, &out, false)
+	return out
+}
+
+func toTfStringList(in []string) types.List {
+	if len(in) == 0 {
+		return types.ListNull(types.StringType)
+	}
+	elems := make([]attr.Value, 0, len(in))
+	for _, v := range in {
+		elems = append(elems, types.StringValue(v))
+	}
+	return types.ListValueMust(types.StringType, elems)
+}
+
 func convertFromTfMap(tfMap types.Map) map[string]string {
 	result := make(map[string]string)
 
@@ -1054,6 +1074,7 @@ func (v BlueprintValue) ToHub(ctx context.Context) (*infrapb.ClusterBlueprint, d
 
 	hub.Name = getStringValue(v.Name)
 	hub.Version = getStringValue(v.Version)
+	hub.OptionalAddons = getStringSlice(ctx, v.OptionalAddons)
 
 	return hub, nil
 }
@@ -1061,6 +1082,7 @@ func (v BlueprintValue) ToHub(ctx context.Context) (*infrapb.ClusterBlueprint, d
 func (v BlueprintValue) FromHub(ctx context.Context, hub *infrapb.ClusterBlueprint) (basetypes.ObjectValue, diag.Diagnostics) {
 	v.Name = types.StringValue(hub.Name)
 	v.Version = types.StringValue(hub.Version)
+	v.OptionalAddons = toTfStringList(hub.OptionalAddons)
 
 	v.state = attr.ValueStateKnown
 	return v.ToObjectValue(ctx)

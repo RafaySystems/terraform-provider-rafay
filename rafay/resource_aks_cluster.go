@@ -143,6 +143,12 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Blueprint version to be associated with the cluster. Default will be the latest version",
 		},
+		"optional_addons": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+		},
 		"cloudprovider": {
 			Type:        schema.TypeString,
 			Required:    true,
@@ -7034,6 +7040,20 @@ LOOP:
 		log.Printf("error while getCluster for %s %s", obj.Metadata.Name, err.Error())
 		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": obj.Metadata.Name, "pid": project.ID})
 		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+
+	// the v1 cluster spec carries no optional add-on selection, so publishing
+	// the blueprint is the only way it reaches the backend. An empty list on a
+	// change is what deselects every optional add-on.
+	var optionalAddons []string
+	if v, ok := d.Get("spec.0.optional_addons").([]interface{}); ok {
+		optionalAddons = toArrayString(v)
+	}
+	if len(optionalAddons) > 0 || d.HasChange("spec.0.optional_addons") {
+		if err := cluster.PublishBlueprintCluster(edgeDb.Name, project.ID, edgeDb.ClusterBlueprint, edgeDb.ClusterBlueprintVersion, false, nil, optionalAddons); err != nil {
+			log.Printf("selecting optional addons failed, error %s", err.Error())
+			return diag.FromErr(err)
+		}
 	}
 
 	cseFromDb := edgeDb.Settings[clusterSharingExtKey]

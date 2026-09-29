@@ -191,6 +191,14 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 		obj["control_plane_version"] = in.ControlPlaneVersion
 	}
 
+	if len(in.CapgVersion) > 0 {
+		obj["capg_version"] = in.CapgVersion
+	}
+
+	if len(in.CapiVersion) > 0 {
+		obj["capi_version"] = in.CapiVersion
+	}
+
 	//	log.Println("flattenGKEV3Config len of prebootstrapcommands", len(in.PreBootstrapCommands))
 	if in.PreBootstrapCommands != nil && len(in.PreBootstrapCommands) > 0 {
 		//		log.Println("flattenGKEV3Config populating prebootstrapcommands")

@@ -273,6 +273,8 @@ Optional:
 - `enabled` - (Boolean) Enables sharing the resource with another project. 
 - `projects` - (Block List; Max: 1) The name of the project to share the resource with. 
 
+Note: `projects` cannot be set when `enabled` is `false`. A configuration that has `enabled = false` along with one or more `projects` blocks fails during `terraform plan` with the error `projects cannot be set when sharing is disabled`. To stop sharing the resource, set `enabled = false` and remove all the `projects` blocks.
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

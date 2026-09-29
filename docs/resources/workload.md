@@ -240,6 +240,270 @@ resource "rafay_workload" "tftestworkload7" {
 
 ```
 
+---
+
+Create a Helm4 workload by uploading a chart.
+
+```terraform
+resource "rafay_workload" "helm4_upload" {
+  metadata {
+    name    = "helm4-upload-workload"
+    project = "test-project"
+  }
+  spec {
+    namespace = "helm4-test-namespace"
+    version   = "v1"
+    placement {
+      selector = "environment=dev"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "file://relative/path/to/chart.tgz"
+        }
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
+        }
+      }
+      options {
+        set                 = ["replicaCount=3"]
+        set_string          = ["image.tag=latest"]
+        wait_strategy       = "watcher"
+        wait_for_jobs       = true
+        timeout             = "5m0s"
+        max_history         = 10
+        cleanup_on_fail     = true
+        rollback_on_failure = true
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from a Helm repository.
+
+```terraform
+resource "rafay_workload" "helm4_helm_repository" {
+  metadata {
+    name    = "helm4-helm-repo-workload"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-namespace"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName in (cluster-1,cluster2,cluster3)"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
+      }
+      options {
+        server_side_apply = "auto"
+        dry_run_strategy  = "none"
+        description       = "NGINX workload managed by Terraform"
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from a Git repository.
+
+```terraform
+resource "rafay_workload" "helm4_git_repository" {
+  metadata {
+    name    = "helm4-git-repository-workload"
+    project = "test-project"
+  }
+  spec {
+    namespace = "test-namespace"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    drift {
+      action  = "Notify"
+      enabled = false
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-repository-name"
+        revision   = "main"
+        chart_path {
+          name = "relative/path/to/chart.tgz"
+        }
+        values_paths {
+          name = "relative/path/to/values.yaml"
+        }
+      }
+      options {
+        wait_strategy = "legacy"
+        timeout       = "10m0s"
+        skip_crds     = true
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from a catalog.
+
+```terraform
+resource "rafay_workload" "helm4_catalog" {
+  metadata {
+    name    = "helm4-catalog-workload"
+    project = "test-project"
+  }
+  spec {
+    namespace = "test-namespace"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-name"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "15.14.0"
+        values_ref {
+          repository = "git-repository-name"
+          revision   = "main"
+          values_paths {
+            name = "relative/path/to/values.yaml"
+          }
+        }
+      }
+      options {
+        server_side_apply = "true"
+        skip_crds         = true
+        sub_notes         = true
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from an uploaded chart without a values file.
+
+```terraform
+resource "rafay_workload" "helm4_upload_without_values" {
+  metadata {
+    name    = "helm4-upload-defaults-workload"
+    project = "test-project"
+  }
+  spec {
+    namespace = "test-namespace"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-name"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "file://relative/path/to/chart.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        timeout             = "5m0s"
+        rollback_on_failure = true
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from a Helm repository with a values file.
+
+```terraform
+resource "rafay_workload" "helm4_helm_repository_with_values" {
+  metadata {
+    name    = "helm4-helm-repo-values-workload"
+    project = "test-project"
+  }
+  spec {
+    namespace = "test-namespace"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
+        }
+      }
+      options {
+        server_side_apply = "auto"
+        wait_strategy     = "watcher"
+        timeout           = "5m0s"
+      }
+    }
+  }
+}
+```
+
+---
+
+Create a Helm4 workload from Git without a values file, place it using a selector, and enable drift protection.
+
+```terraform
+resource "rafay_workload" "helm4_git_defaults_labels_drift" {
+  metadata {
+    name    = "helm4-git-labels-drift-workload"
+    project = "defaultproject"
+  }
+  spec {
+    namespace = "tf-namespace"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    drift {
+      # Increment spec.version when changing the drift action.
+      action  = "Deny"
+      enabled = true
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-repository-name"
+        revision   = "main"
+        chart_path {
+          name = "relative/path/to/chart.tgz"
+        }
+      }
+      options {
+        wait_strategy = "legacy"
+        timeout       = "2m0s"
+      }
+    }
+  }
+}
+```
+
 <!-- schema generated by tfplugindocs -->
 ## Argument Reference
 
@@ -285,11 +549,11 @@ resource "rafay_workload" "tftestworkload7" {
 ***Required***
 
 - `artifact` - (Block List, Max: 1) Contains data about the artifact repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
-- `type` - (String) The type of artifact. Supported values are: `Helm` and `Yaml`.
+- `type` - (String) The type of artifact. Supported values are: `Helm`, `Helm4`, and `Yaml`.
 
 ***Optional***
 
-- `options` - (Block List, Max: 1) Helm options. (See [below for nested schema](#nestedblock--spec--artifact--options))
+- `options` - (Block List, Max: 1) Deployment options for Helm and Helm4 artifacts. (See [below for nested schema](#nestedblock--spec--artifact--options))
  
 
 
@@ -313,13 +577,14 @@ resource "rafay_workload" "tftestworkload7" {
 - `values_ref` (Block List, Max: 1) Override relative paths to values files (see [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref))
 
 **Note**: 
-- For Yaml type add-on: 
+- For Yaml type workload:
   - If uploding the Yaml, `paths` is required.
   - If using a Web-YAML , `url` is required. 
 - For Helm type workload:
   - If uploading the chart, `chart_path` is required.
   - If pulling the chart from the Helm, `repository` and `chart_name` are required.
   - If pulling the chart from the Git, `repository`, `chart_path`, and `revision` are required. 
+- For Helm4 type workload, the chart source fields are the same as for the Helm type. The deployment behavior is controlled through the Helm4 fields of the `options` block. (See [nested schema for `spec.artifact.options`](#nestedblock--spec--artifact--options))
 
 
 <a id="nestedblock--spec--artifact--artifact--chart_path"></a>
@@ -333,26 +598,58 @@ resource "rafay_workload" "tftestworkload7" {
 <a id="nestedblock--spec--artifact--options"></a>
 ### Nested Schema for `spec.artifact.options`
 
-Optional:
+The following options apply when `type` is `Helm4`. All of them are optional.
 
-***Optional***
+***General***
 
-- `atomic` - (Boolean) If enabled, the installation process deletes the installation on failure. The --wait flag is set automatically if atomic is enabled. 
-- `clean_up_on_fail` - (Boolean) If enabled, cleanup deployed resources if the resource fails to deploy. 
-- `description` - (String) A description for the release, provided by the user. 
-- `disable_open_api_validation` - (Boolean) If enabled, disables OpenAPI validation while deploying the resource. 
-- `force` - (Boolean) If enabled, deploys the resource with the force flag enabled. This will force resource updates through a replacement strategy, which destroys and recreates the resource if the upgrade fails. 
-- `keep_history` - (Boolean) If enabled, it will keep the release history after uninstalling the resource. 
-- `max_history` - (Number) The maximum number of historical revisions to retain. 
-- `no_hooks` - (Boolean) If enabled, deploy the resource without hooks. 
-- `render_sub_chart_notes` - (Boolean) If enabled, render subchart notes along with the parent. 
-- `reset_values` - (Boolean) If enabled, when upgrading, reset the values to the values built into the chart. 
-- `reuse_values` - (Boolean) If enabled, when upgrading, reuse the values from the last release and merge in any overrides from the command line via -set and -if. If `--reset values` is specified, this is ignored. 
-- `set_string` - (List of String) If enabled, pass the custom helm values as key=value. 
-- `skip_crd` - (Boolean) If enabled, the installation skips deploying CRDs. 
-- `timeout` - (String) The timeout for waiting for the resources to become ready. (See [below for nested schema](#nestedblock--spec--artifact--options--timeouts)) 
-- `wait` - (Boolean) If enabled, deploy the resource with wait flag. This means wait until the deployment is in a ready state before marking the release as successful. 
-- `wait_for_jobs` - (Boolean) if set and --wait enabled, will wait until all Jobs have been completed before marking the release as successful. It will wait for as long as --timeout
+- `set` - (List of String) Pass custom Helm values as `key=value` pairs.
+- `set_string` - (List of String) Pass custom Helm values as `key=value` pairs, forcing the values to be treated as strings.
+- `labels` - (Map of String) Labels applied to the release metadata.
+- `description` - (String) Custom description for the release.
+- `timeout` - (String) Timeout for waiting for resources to become ready (for example, `5m0s`).
+- `max_history` - (Number) Limit the number of Helm release history revisions.
+- `enable_dns` - (Boolean) Enable DNS lookup for chart URLs.
+
+***Wait behavior***
+
+- `wait_strategy` - (String) Controls how Helm waits for resources after an install or upgrade. Allowed values are `hookOnly`, `watcher`, and `legacy`.
+- `wait_for_jobs` - (Boolean) Wait for Jobs to complete when waiting.
+
+***Dry run***
+
+- `dry_run_strategy` - (String) Controls whether the release is applied or simulated. Allowed values are `none`, `client`, and `server`.
+- `hide_secret` - (Boolean) Hide Secret contents in rendered output during a client or server dry run.
+
+***Apply behavior***
+
+- `server_side_apply` - (String) Controls server-side apply. Allowed values are `auto`, `true`, and `false`.
+- `force_conflicts` - (Boolean) Force apply when server-side apply field manager conflicts occur.
+- `force_replace` - (Boolean) Replace resources through delete and recreate when needed.
+- `take_ownership` - (Boolean) Take ownership of fields from other field managers.
+- `replace` - (Boolean) Replace the release if it exists.
+
+***Validation and hooks***
+
+- `disable_hooks` - (Boolean) Disable chart hooks for this operation.
+- `skip_crds` - (Boolean) Skip installing CRDs from the chart.
+- `skip_schema_validation` - (Boolean) Skip JSON schema validation of values.
+- `disable_open_api_validation` - (Boolean) Disable OpenAPI validation while applying resources.
+
+***Failure handling***
+
+- `rollback_on_failure` - (Boolean) Roll back to the previous release if the install or upgrade fails.
+- `cleanup_on_fail` - (Boolean) Clean up resources when the operation fails.
+
+***Values handling on upgrade***
+
+- `reset_values` - (Boolean) Reset values to chart defaults.
+- `reuse_values` - (Boolean) Reuse values from the last release.
+- `reset_then_reuse_values` - (Boolean) Reset and then merge values from the last release.
+
+***Notes output***
+
+- `sub_notes` - (Boolean) Show subchart notes.
+- `hide_notes` - (Boolean) Hide chart notes from output.
 
 
 <a id="nestedblock--spec--drift"></a>

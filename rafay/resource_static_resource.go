@@ -24,6 +24,7 @@ func resourceStaticResource() *schema.Resource {
 		ReadContext:   resourceStaticResourceRead,
 		UpdateContext: resourceStaticResourceUpdate,
 		DeleteContext: resourceStaticResourceDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceStaticResourceImport,
 		},
@@ -224,13 +225,17 @@ func expandResourceSpec(p []any) (*eaaspb.ResourceSpec, error) {
 	}
 
 	in := p[0].(map[string]any)
+	var err error
 
 	if v, ok := in["variables"].([]any); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
-		spec.Sharing = expandSharingSpec(v)
+		spec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil

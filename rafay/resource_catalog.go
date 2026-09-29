@@ -27,6 +27,7 @@ func resourceCatalog() *schema.Resource {
 		ReadContext:   resourceCatalogRead,
 		UpdateContext: resourceCatalogUpdate,
 		DeleteContext: resourceCatalogDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -228,6 +229,7 @@ func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["auto_sync"].(bool); ok {
 		obj.AutoSync = v
@@ -240,7 +242,10 @@ func expandCatalogSpec(p []interface{}) (*appspb.CatalogSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {

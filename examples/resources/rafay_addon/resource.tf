@@ -153,25 +153,27 @@ resource "rafay_addon" "tfdemoaddon7" {
 }
 
 # Helm4 Chart Upload Example
-resource "rafay_addon" "tfdemoaddon8" {
+resource "rafay_addon" "helm4_upload" {
   metadata {
-    name    = "tfdemoaddon8"
-    project = "terraform"
+    name    = "helm4-upload-addon"
+    project = "helm4-project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "helm4-test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
         chart_path {
-          name = "file://artifacts/tfdemoaddon4/apache-9.0.9.tgz"
+          name = "file://relative/path/to/chart.tgz"
         }
         values_paths {
-          name = "file://artifacts/tfdemoaddon4/values.yaml"
+          name = "file://relative/path/to/values.yaml"
         }
       }
       options {
+        set                 = ["replicaCount=3"]
+        set_string          = ["image.tag=latest"]
         wait_strategy       = "watcher"
         wait_for_jobs       = true
         timeout             = "5m0s"
@@ -180,76 +182,225 @@ resource "rafay_addon" "tfdemoaddon8" {
         rollback_on_failure = true
       }
     }
+    sharing {
+      enabled = false
+    }
   }
 }
 
 # Helm4 Chart from Helm Repository Example
-resource "rafay_addon" "tfdemoaddon9" {
+resource "rafay_addon" "helm4_helm_repository" {
   metadata {
-    name    = "tfdemoaddon9"
-    project = "terraform"
+    name    = "helm4-helm-repository-addon"
+    project = "addon-project-name"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "test-namespace"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
-        repository    = "helm-repo"
-        chart_name    = "apache"
-        chart_version = "9.0.9"
-        values_paths {
-          name = "file://relative/path/to/some/chart/values.yaml"
-        }
+        repository    = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
       }
       options {
-        set               = ["replicaCount=3"]
         server_side_apply = "auto"
         dry_run_strategy  = "none"
-        skip_crds         = false
-        disable_hooks     = false
-        description       = "apache addon managed by terraform"
+        description       = "NGINX add-on managed using Terraform"
       }
+    }
+    sharing {
+      enabled = false
     }
   }
 }
 
 # Helm4 Chart from Git Repository Example
-resource "rafay_addon" "tfdemoaddon10" {
+resource "rafay_addon" "helm4_git_repository" {
   metadata {
-    name    = "tfdemoaddon10"
-    project = "terraform"
+    name    = "helm4-git-repository-addon"
+    project = "helm4-test-project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace     = "helm4-test"
+    version       = "v1.0"
+    version_state = "active"
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-repository-name"
+        revision   = "main"
+        chart_path {
+          name = "relative/path/to/chart.tgz"
+        }
+        values_paths {
+          name = "relative/path/to/values.yaml"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        wait_for_jobs       = true
+        timeout             = "10m0s"
+        rollback_on_failure = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+# Helm4 Chart from Catalog Example
+resource "rafay_addon" "helm4_catalog" {
+  metadata {
+    name    = "helm4-catalog-addon"
+    project = "helm4-test-project"
+  }
+  spec {
+    namespace = "helm4-test"
     version   = "v1.0"
     artifact {
       type = "Helm4"
       artifact {
-        repository = "git-repo"
-        revision   = "main"
-        chart_path {
-          name = "charts/apache"
-        }
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "15.14.0"
         values_ref {
-          repository = "git-repo"
+          repository = "git-repository-name"
           revision   = "main"
           values_paths {
-            name = "charts/apache/values.yaml"
+            name = "relative/path/to/values.yaml"
           }
         }
       }
       options {
-        labels = {
-          "env" = "production"
-        }
-        dependency_update       = true
-        reuse_values            = false
-        reset_then_reuse_values = false
-        force_conflicts         = false
-        take_ownership          = false
-        enable_dns              = true
+        server_side_apply = "true"
+        skip_crds         = true
+        sub_notes         = true
       }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+# Helm4 Chart Upload without a Values File
+resource "rafay_addon" "helm4_upload_without_values" {
+  metadata {
+    name    = "helm4-upload-defaults-addon"
+    project = "helm4-test-project"
+  }
+  spec {
+    namespace = "helm4-test"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "file://relative/path/to/chart.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        timeout             = "5m0s"
+        rollback_on_failure = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+# Helm4 Chart from a Helm Repository with a Values File
+resource "rafay_addon" "helm4_helm_repository_with_values" {
+  metadata {
+    name    = "helm4-helm-repo-values-addon"
+    project = "project-name"
+  }
+  spec {
+    namespace = "test-namespace"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository    = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "25.0.16"
+        values_paths {
+          name = "file://relative/path/to/values.yaml"
+        }
+      }
+      options {
+        server_side_apply = "auto"
+        wait_strategy     = "watcher"
+        timeout           = "5m0s"
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+# Helm4 Chart from Git without a Values File
+resource "rafay_addon" "helm4_git_repository_without_values" {
+  metadata {
+    name    = "helm4-git-defaults-addon"
+    project = "test-project-name"
+  }
+  spec {
+    namespace     = "test-namespace"
+    version       = "v1.0"
+    version_state = "active"
+    artifact {
+      type = "Helm4"
+      artifact {
+        repository = "git-repository-name"
+        revision   = "main"
+        chart_path {
+          name = "relative/path/to/chart.tgz"
+        }
+      }
+      options {
+        wait_strategy       = "watcher"
+        wait_for_jobs       = true
+        timeout             = "10m0s"
+        rollback_on_failure = true
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+# Helm4 Chart from a Catalog without a Values File
+resource "rafay_addon" "helm4_catalog_without_values" {
+  metadata {
+    name    = "helm4-catalog-defaults-addon"
+    project = "defaultproject"
+  }
+  spec {
+    namespace = "tf-namespace"
+    version   = "v1.0"
+    artifact {
+      type = "Helm4"
+      artifact {
+        catalog       = "default-bitnami"
+        chart_name    = "nginx"
+        chart_version = "15.14.0"
+      }
+      options {
+        server_side_apply = "true"
+        skip_crds         = true
+        sub_notes         = true
+      }
+    }
+    sharing {
+      enabled = false
     }
   }
 }

@@ -28,6 +28,7 @@ func resourceNamespaceNetworkPolicy() *schema.Resource {
 		ReadContext:   resourceNamespaceNetworkPolicyRead,
 		UpdateContext: resourceNamespaceNetworkPolicyUpdate,
 		DeleteContext: resourceNamespaceNetworkPolicyDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -234,13 +235,17 @@ func expandNamespaceNetworkPolicySpec(p []interface{}) (*securitypb.NamespaceNet
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["rules"].([]interface{}); ok && len(v) > 0 {
 		obj.Rules = expandNamespaceNetworkPolicySpecRules(v)
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {

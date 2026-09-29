@@ -28,6 +28,7 @@ func resourceOPAInstallationProfile() *schema.Resource {
 		ReadContext:   resourceOPAInstallationProfileRead,
 		UpdateContext: resourceOPAInstallationProfileUpdate,
 		DeleteContext: resourceOPAInstallationProfileDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceOPAInstallationProfileImport,
 		},
@@ -223,6 +224,7 @@ func expandOPAInstallationProfileSpec(p []interface{}) (*opapb.OPAProfileSpec, e
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
@@ -241,7 +243,10 @@ func expandOPAInstallationProfileSpec(p []interface{}) (*opapb.OPAProfileSpec, e
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["opa_version"].(string); ok && len(v) > 0 {

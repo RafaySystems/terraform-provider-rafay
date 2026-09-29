@@ -1157,6 +1157,10 @@ func expandToV3GkeNodeSecurity(p []interface{}) (*infrapb.GkeNodeSecurity, error
 		obj.EnableSecureBoot = v
 	}
 
+	if v, ok := in["workload_metadata_mode"].(string); ok && v != "" {
+		obj.WorkloadMetadataMode = v
+	}
+
 	return obj, nil
 }
 

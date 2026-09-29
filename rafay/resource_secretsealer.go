@@ -28,6 +28,7 @@ func resourceSecretSealer() *schema.Resource {
 		ReadContext:   resourceSecretSealerRead,
 		UpdateContext: resourceSecretSealerUpdate,
 		DeleteContext: resourceSecretSealerDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -231,13 +232,17 @@ func expandSecretSealerSpec(p []interface{}) (*integrationspb.SecretSealerSpec, 
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {

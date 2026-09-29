@@ -28,6 +28,7 @@ func resourceAgentPool() *schema.Resource {
 		ReadContext:   resourceAgentPoolRead,
 		UpdateContext: resourceAgentPoolUpdate,
 		DeleteContext: resourceAgentPoolDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -238,6 +239,7 @@ func expandAgentPoolSpec(p []interface{}) (*gitopspb.AgentPoolSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if agents, ok := in["agents"].([]interface{}); ok && len(agents) > 0 {
 		for _, agent := range agents {
@@ -248,7 +250,10 @@ func expandAgentPoolSpec(p []interface{}) (*gitopspb.AgentPoolSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return obj, nil

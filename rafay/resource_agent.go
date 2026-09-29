@@ -34,6 +34,7 @@ func resourceAgent() *schema.Resource {
 		ReadContext:   resourceAgentRead,
 		UpdateContext: resourceAgentUpdate,
 		DeleteContext: resourceAgentDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -336,6 +337,7 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
@@ -350,7 +352,10 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {

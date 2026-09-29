@@ -28,6 +28,7 @@ func resourceClusterNetworkPolicyRule() *schema.Resource {
 		ReadContext:   resourceClusterNetworkPolicyRuleRead,
 		UpdateContext: resourceClusterNetworkPolicyRuleUpdate,
 		DeleteContext: resourceClusterNetworkPolicyRuleDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -234,9 +235,13 @@ func expandClusterNetworkPolicyRuleSpec(p []interface{}) (*securitypb.ClusterNet
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {

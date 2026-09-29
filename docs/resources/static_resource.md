@@ -62,6 +62,7 @@ resource "rafay_static_resource" "static-resource-example" {
 
 ***Optional***
 
+- `sharing` (Block List, Max: 1) Sharing configuration of the resource (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for resource (see [below for nested schema](#nestedblock--spec--variables))
 
 <a id="nestedblock--spec--variables"></a>
@@ -84,6 +85,23 @@ resource "rafay_static_resource" "static-resource-example" {
 
 - `description` (String) Description of the variable
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it.
+
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Optional***
+
+- `enabled` (Boolean) flag to specify if sharing is enabled for resource
+- `projects` (Block Set) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
+
+Note: `projects` cannot be set when `enabled` is `false`. A configuration that has `enabled = false` along with one or more `projects` blocks fails during `terraform plan` with the error `projects cannot be set when sharing is disabled`. To stop sharing the resource, set `enabled = false` and remove all the `projects` blocks.
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` (String) name of the project, '*' if to be shared with all projects
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

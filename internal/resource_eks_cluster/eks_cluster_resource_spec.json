@@ -481,7 +481,7 @@
                                                 {
                                                     "name": "instance_type",
                                                     "string": {
-                                                        "computed_optional_required": "required",
+                                                        "computed_optional_required": "optional",
                                                         "description": "The type of EC2 instance to use for the nodes in this group."
                                                     }
                                                 },
@@ -513,12 +513,22 @@
                                                     "name": "max_pods_per_node",
                                                     "int64": {
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        } 
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
-                                                
+                                              
                                                 {
                                                     "name": "disable_imdsv1",
                                                     "bool": {
@@ -553,10 +563,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -564,9 +571,19 @@
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -574,9 +591,19 @@
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -584,9 +611,19 @@
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -1141,30 +1178,21 @@
                                                                 {
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "description": "base number of on-demand instances (non-negative).",
-                                                                        "default": {
-                                                                            "static": 0
-                                                                        }
+                                                                        "computed_optional_required": "optional",
+                                                                        "description": "base number of on-demand instances (non-negative)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 100
-                                                                        },
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 2
-                                                                        },
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -1432,9 +1460,19 @@
                                                     "name": "max_pods_per_node",
                                                     "int64": {
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        }    
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 
@@ -1472,10 +1510,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -1483,9 +1518,19 @@
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -1493,9 +1538,19 @@
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -1503,9 +1558,19 @@
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -2385,7 +2450,7 @@
                                                 {
                                                     "name": "instance_type",
                                                     "string": {
-                                                        "computed_optional_required": "required",
+                                                        "computed_optional_required": "optional",
                                                         "description": "The type of EC2 instance to use for the nodes in this group."
                                                     }
                                                 },
@@ -2417,9 +2482,19 @@
                                                     "name": "max_pods_per_node",
                                                     "int64": {
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        } 
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 
@@ -2457,10 +2532,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -2468,9 +2540,19 @@
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -2478,9 +2560,19 @@
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -2488,9 +2580,19 @@
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -3064,30 +3166,21 @@
                                                                 {
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "description": "base number of on-demand instances (non-negative).",
-                                                                        "default": {
-                                                                            "static": 0
-                                                                        }
+                                                                        "computed_optional_required": "optional",
+                                                                        "description": "base number of on-demand instances (non-negative)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 100
-                                                                        },
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 2
-                                                                        },
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -5142,9 +5235,19 @@
                                                     "name": "max_pods_per_node",
                                                     "int64": {
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        }   
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -5181,10 +5284,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -5192,9 +5292,19 @@
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -5202,9 +5312,19 @@
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {
@@ -5212,9 +5332,19 @@
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
                                                         "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "plan_modifiers": [
+                                                            {
+                                                                "custom": {
+                                                                    "imports": [
+                                                                        {
+                                                                            "path": "github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
+                                                                        }
+                                                                    ],
+                                                                    "schema_definition": "eksint64planmodifier.UseStateOrNullForUnknown()"
+                                                                }
+                                                            }
+                                                        ]
+
                                                     }
                                                 },
                                                 {

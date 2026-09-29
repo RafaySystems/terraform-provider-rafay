@@ -5,10 +5,12 @@ package resource_eks_cluster
 import (
 	"context"
 	"fmt"
+	"github.com/RafaySystems/terraform-provider-rafay/internal/resource_eks_cluster/eksint64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -715,7 +717,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
 										Computed: true,
-										Default:  int64default.StaticInt64(0),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -822,10 +826,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -972,7 +974,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -989,14 +993,18 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-										Default:             int64default.StaticInt64(80),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
 										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -1370,7 +1378,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Optional: true,
 									},
 									"instance_type": schema.StringAttribute{
-										Required:            true,
+										Optional:            true,
 										Description:         "The type of EC2 instance to use for the nodes in this group.",
 										MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
 									},
@@ -1396,17 +1404,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"on_demand_base_capacity": schema.Int64Attribute{
 												Optional:            true,
-												Computed:            true,
 												Description:         "base number of on-demand instances (non-negative).",
 												MarkdownDescription: "base number of on-demand instances (non-negative).",
-												Default:             int64default.StaticInt64(0),
 											},
 											"on_demand_percentage_above_base_capacity": schema.Int64Attribute{
 												Optional:            true,
-												Computed:            true,
 												Description:         "percentage of on-demand instances above base capacity (0-100).",
 												MarkdownDescription: "percentage of on-demand instances above base capacity (0-100).",
-												Default:             int64default.StaticInt64(100),
 											},
 											"spot_allocation_strategy": schema.StringAttribute{
 												Optional:            true,
@@ -1415,10 +1419,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"spot_instance_pools": schema.Int64Attribute{
 												Optional:            true,
-												Computed:            true,
 												Description:         "number of spot instance pools to use (1-20).",
 												MarkdownDescription: "number of spot instance pools to use (1-20).",
-												Default:             int64default.StaticInt64(2),
 											},
 										},
 										CustomType: InstancesDistribution6Type{
@@ -1476,7 +1478,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
 										Computed: true,
-										Default:  int64default.StaticInt64(0),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -1516,10 +1520,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -1674,7 +1676,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -1691,14 +1695,18 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-										Default:             int64default.StaticInt64(80),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
 										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -2862,7 +2870,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
 										Computed: true,
-										Default:  int64default.StaticInt64(0),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -2892,10 +2902,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"spot": schema.BoolAttribute{
 										Optional:            true,
@@ -2933,7 +2941,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -2950,14 +2960,18 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-										Default:             int64default.StaticInt64(80),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
 										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -3572,7 +3586,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Prefix for the instance name.",
 									},
 									"instance_type": schema.StringAttribute{
-										Required:            true,
+										Optional:            true,
 										Description:         "The type of EC2 instance to use for the nodes in this group.",
 										MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
 									},
@@ -3585,7 +3599,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
 										Computed: true,
-										Default:  int64default.StaticInt64(0),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -3615,10 +3631,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"subnet_cidr": schema.StringAttribute{
 										Optional:            true,
@@ -3660,7 +3674,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -3677,14 +3693,18 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-										Default:             int64default.StaticInt64(80),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
 										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
+										PlanModifiers: []planmodifier.Int64{
+											eksint64planmodifier.UseStateOrNullForUnknown(),
+										},
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -3991,17 +4011,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"on_demand_base_capacity": schema.Int64Attribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "base number of on-demand instances (non-negative).",
 													MarkdownDescription: "base number of on-demand instances (non-negative).",
-													Default:             int64default.StaticInt64(0),
 												},
 												"on_demand_percentage_above_base_capacity": schema.Int64Attribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "percentage of on-demand instances above base capacity (0-100).",
 													MarkdownDescription: "percentage of on-demand instances above base capacity (0-100).",
-													Default:             int64default.StaticInt64(100),
 												},
 												"spot_allocation_strategy": schema.StringAttribute{
 													Optional:            true,
@@ -4010,10 +4026,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"spot_instance_pools": schema.Int64Attribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "number of spot instance pools to use (1-20).",
 													MarkdownDescription: "number of spot instance pools to use (1-20).",
-													Default:             int64default.StaticInt64(2),
 												},
 											},
 											CustomType: InstancesDistributionType{

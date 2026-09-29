@@ -30,10 +30,10 @@ type repositorySpec struct {
 	Options     *integrationspb.RepositoryOptions `protobuf:"bytes,4,opt,name=options,proto3" json:"options,omitempty"`
 	Secret      *commonpb.File                    `protobuf:"bytes,5,opt,name=secret,proto3" json:"secret,omitempty"`
 	Credentials struct {
-		Username   string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-		Password   string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-		PrivateKey string `protobuf:"bytes,1,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
-		AppID      string `protobuf:"bytes,3,opt,name=appID,proto3" json:"appID,omitempty"`
+		Username       string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+		Password       string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+		PrivateKey     string `protobuf:"bytes,1,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
+		AppID          string `protobuf:"bytes,3,opt,name=appID,proto3" json:"appID,omitempty"`
 		InstallationID string `protobuf:"bytes,4,opt,name=installationID,proto3" json:"installationID,omitempty"`
 	} `json:"credentials,omitempty"`
 	Sharing *commonpb.SharingSpec `protobuf:"bytes,5,opt,name=sharing,proto3" json:"sharing,omitempty"`
@@ -51,6 +51,7 @@ func resourceRepositories() *schema.Resource {
 		ReadContext:   resourceRepositoriesRead,
 		UpdateContext: resourceRepositoriesUpdate,
 		DeleteContext: resourceRepositoriesDelete,
+		CustomizeDiff: sharingCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -294,6 +295,7 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 	}
 
 	in := p[0].(map[string]interface{})
+	var err error
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		//obj.Type = v
@@ -347,7 +349,10 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		repoSpec.Sharing = expandSharingSpec(v)
+		repoSpec.Sharing, err = expandSharingSpecWithValidation(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// XXX Debug

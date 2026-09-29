@@ -809,6 +809,14 @@ func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMeta
 	md.Region = getStringValue(v.Region)
 	md.Version = getStringValue(v.Version)
 
+	// Only emitted when true: an explicit false is indistinguishable from "unset"
+	// here, and sending it would add the key to the wire config on every apply for
+	// users who never opted in.
+	if !v.ForceUpdateVersion.IsNull() && !v.ForceUpdateVersion.IsUnknown() && v.ForceUpdateVersion.ValueBool() {
+		force := true
+		md.ForceUpdateVersion = &force
+	}
+
 	tags := make(map[string]string, len(v.Tags.Elements()))
 	vTags := make(map[string]types.String, len(v.Tags.Elements()))
 	d = v.Tags.ElementsAs(ctx, &vTags, false)

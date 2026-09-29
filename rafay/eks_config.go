@@ -157,11 +157,16 @@ type AWSPolicyInlineDocument map[string]interface{}
 
 // EKSClusterConfigMetadata struct -> cfg.EKSClusterMeta
 type EKSClusterConfigMetadata struct {
-	Name        string            `yaml:"name,omitempty"`
-	Region      string            `yaml:"region,omitempty"`
-	Version     string            `yaml:"version,omitempty"`
-	Tags        map[string]string `yaml:"tags,omitempty"`
-	Annotations map[string]string `yaml:"annotations,omitempty"`
+	Name    string `yaml:"name,omitempty"`
+	Region  string `yaml:"region,omitempty"`
+	Version string `yaml:"version,omitempty"`
+	// Overrides upgrade-blocking readiness insights when the version changes,
+	// including a rollback to the previous minor version. The yaml key must stay
+	// identical to edge-common's EKSClusterMeta.ForceUpdateVersion json tag, since
+	// this struct is YAML-encoded straight onto the wire.
+	ForceUpdateVersion *bool             `yaml:"forceUpdateVersion,omitempty"`
+	Tags               map[string]string `yaml:"tags,omitempty"`
+	Annotations        map[string]string `yaml:"annotations,omitempty"`
 }
 
 // EKSClusterIAMMeta struct -> cfg.IAM.ServiceAccounts

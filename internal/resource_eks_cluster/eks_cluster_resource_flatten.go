@@ -2241,6 +2241,12 @@ func (v *Metadata2Value) Flatten(ctx context.Context, in *rafay.EKSClusterConfig
 		v.Version = types.StringValue(in.Version)
 	}
 
+	// Left null when the server did not return it, so a config that never set the
+	// flag does not read back as drift against an explicit false.
+	if in.ForceUpdateVersion != nil {
+		v.ForceUpdateVersion = types.BoolValue(*in.ForceUpdateVersion)
+	}
+
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) > 0 {
 		tag := map[string]attr.Value{}

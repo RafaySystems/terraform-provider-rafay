@@ -161,9 +161,20 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec, state SpecVa
 		v.BlueprintVersion = types.StringNull()
 	}
 
-	// the v1 cluster spec has no optional add-on selection to read back, so the
-	// configured value is carried through; dropping it would be a perpetual diff
-	v.OptionalAddons = state.OptionalAddons
+	// the selection now round-trips in the v1 cluster config, so read it back from
+	// the API rather than echoing prior state - otherwise terraform can never see
+	// a selection changed outside this resource. Ordering follows prior state so a
+	// reordered response is not reported as a diff.
+	optionalAddons := types.ListNull(types.StringType)
+	if len(in.OptionalAddons) > 0 {
+		oaElements := make([]attr.Value, 0, len(in.OptionalAddons))
+		for _, oa := range flattenStringListWithStateOrder(in.OptionalAddons, state.OptionalAddons) {
+			oaElements = append(oaElements, types.StringValue(oa))
+		}
+		optionalAddons, d = types.ListValue(types.StringType, oaElements)
+		diags = append(diags, d...)
+	}
+	v.OptionalAddons = optionalAddons
 
 	if in.CloudProvider != "" {
 		v.CloudProvider = types.StringValue(in.CloudProvider)

@@ -154,6 +154,12 @@ func (v SpecValue) Expand(ctx context.Context) (*rafay.EKSSpec, diag.Diagnostics
 	if !v.BlueprintVersion.IsNull() && !v.BlueprintVersion.IsUnknown() {
 		spec.BlueprintVersion = getStringValue(v.BlueprintVersion)
 	}
+	// rides along in the cluster config so the selection is in place for the
+	// first blueprint sync, rather than needing a publish after the cluster
+	// settles - which never runs if the cluster is slow to report ready
+	if !v.OptionalAddons.IsNull() && !v.OptionalAddons.IsUnknown() {
+		diags.Append(v.OptionalAddons.ElementsAs(ctx, &spec.OptionalAddons, false)...)
+	}
 	if !v.CloudProvider.IsNull() && !v.CloudProvider.IsUnknown() {
 		spec.CloudProvider = getStringValue(v.CloudProvider)
 	}

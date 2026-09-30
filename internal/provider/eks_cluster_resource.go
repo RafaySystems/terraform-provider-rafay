@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -25,22 +24,6 @@ import (
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/go-yaml/yaml"
 )
-
-// eksOptionalAddons reads cluster.spec.optional_addons from the plan. The v1
-// cluster spec has no field for the selection, so it only reaches the backend
-// through a blueprint publish. present is false when the attribute is unset,
-// which leaves any existing selection alone; an explicit empty list deselects.
-func eksOptionalAddons(ctx context.Context, plan tfsdk.Plan) (addons []string, present bool, diags diag.Diagnostics) {
-	var list types.List
-	p := path.Root("cluster").AtListIndex(0).AtName("spec").AtListIndex(0).AtName("optional_addons")
-	diags = plan.GetAttribute(ctx, p, &list)
-	if diags.HasError() || list.IsNull() || list.IsUnknown() {
-		return nil, false, diags
-	}
-
-	diags.Append(list.ElementsAs(ctx, &addons, false)...)
-	return addons, !diags.HasError(), diags
-}
 
 var _ resource.Resource = (*eksClusterResource)(nil)
 
@@ -371,19 +354,6 @@ LOOP:
 		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", err))
 		return
-	}
-
-	// the v1 cluster spec carries no optional add-on selection, so publishing
-	// the blueprint is the only way it reaches the backend
-	if optionalAddons, present, d := eksOptionalAddons(ctx, req.Plan); present {
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		if err := cluster.PublishBlueprintCluster(clusterName, projectID, edgeDb.ClusterBlueprint, edgeDb.ClusterBlueprintVersion, false, nil, optionalAddons); err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to select optional addons, got error: %s", err))
-			return
-		}
 	}
 	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
 	if cseFromDb != "true" {
@@ -865,19 +835,6 @@ LOOP:
 		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", err))
 		return
-	}
-
-	// the v1 cluster spec carries no optional add-on selection, so publishing
-	// the blueprint is the only way it reaches the backend
-	if optionalAddons, present, d := eksOptionalAddons(ctx, req.Plan); present {
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		if err := cluster.PublishBlueprintCluster(clusterName, projectID, edgeDb.ClusterBlueprint, edgeDb.ClusterBlueprintVersion, false, nil, optionalAddons); err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to select optional addons, got error: %s", err))
-			return
-		}
 	}
 	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
 	if cseFromDb != "true" {

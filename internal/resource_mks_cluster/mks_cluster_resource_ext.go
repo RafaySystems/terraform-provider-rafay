@@ -1082,7 +1082,13 @@ func (v BlueprintValue) ToHub(ctx context.Context) (*infrapb.ClusterBlueprint, d
 func (v BlueprintValue) FromHub(ctx context.Context, hub *infrapb.ClusterBlueprint) (basetypes.ObjectValue, diag.Diagnostics) {
 	v.Name = types.StringValue(hub.Name)
 	v.Version = types.StringValue(hub.Version)
-	v.OptionalAddons = toTfStringList(hub.OptionalAddons)
+	// the API returns no add-ons for both "unset" and "[]"; keep an empty list the
+	// config already had, otherwise every plan shows [] -> null drift
+	keepEmpty := len(hub.OptionalAddons) == 0 && !v.OptionalAddons.IsNull() &&
+		!v.OptionalAddons.IsUnknown() && len(v.OptionalAddons.Elements()) == 0
+	if !keepEmpty {
+		v.OptionalAddons = toTfStringList(hub.OptionalAddons)
+	}
 
 	v.state = attr.ValueStateKnown
 	return v.ToObjectValue(ctx)

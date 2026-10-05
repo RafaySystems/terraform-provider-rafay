@@ -255,6 +255,11 @@ func dataImportClusterRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("optional_addons", toArrayInterface(c.OptionalAddons)); err != nil {
+		log.Printf("set optional_addons error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
 	if err := d.Set("kubernetes_provider", c.ClusterProvisionParams.KubernetesProvider); err != nil {
 		log.Printf("set kubernetes_provider  error %s", err.Error())
 		return diag.FromErr(err)

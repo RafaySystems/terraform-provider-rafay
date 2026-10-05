@@ -11,7 +11,7 @@ type EKSSpec struct {
 	Type                      string                     `yaml:"type,omitempty"`
 	Blueprint                 string                     `yaml:"blueprint,omitempty"`
 	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
-	OptionalAddons            []string                   `yaml:"optionalAddons,omitempty"`
+	OptionalAddons            []string                   `yaml:"optionalAddons"`
 	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
 	CrossAccountRoleArn       string                     `yaml:"crossAccountRoleARN,omitempty"`
 	CniProvider               string                     `yaml:"cniprovider,omitempty"`

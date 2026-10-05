@@ -173,6 +173,10 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec, state SpecVa
 		}
 		optionalAddons, d = types.ListValue(types.StringType, oaElements)
 		diags = append(diags, d...)
+	} else if !state.OptionalAddons.IsNull() && !state.OptionalAddons.IsUnknown() && len(state.OptionalAddons.Elements()) == 0 {
+		// the API returns no add-ons for both "unset" and "[]"; keep an empty list
+		// the config already had, otherwise every plan shows [] -> null drift
+		optionalAddons = state.OptionalAddons
 	}
 	v.OptionalAddons = optionalAddons
 

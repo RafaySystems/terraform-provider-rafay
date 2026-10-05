@@ -2452,10 +2452,11 @@ func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec 
 
 	// rides along in the cluster config so the selection is in place for the
 	// first blueprint sync, rather than needing a publish after the cluster
-	// settles - which never runs if the cluster is slow to report ready
-	if v, ok := in["optional_addons"].([]interface{}); ok && len(v) > 0 {
-		obj.OptionalAddons = toArrayString(v)
-	}
+	// settles - which never runs if the cluster is slow to report ready.
+	// Always sent (non-nil, so it marshals as []) - an absent key keeps the
+	// current selection, so unset/[] must go out as [] to deselect
+	oa, _ := in["optional_addons"].([]interface{})
+	obj.OptionalAddons = toArrayString(oa)
 
 	if v, ok := in["cloudprovider"].(string); ok && len(v) > 0 {
 		obj.CloudProvider = v
@@ -4476,6 +4477,10 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Val
 	if len(in.BlueprintVersion) > 0 {
 		obj["blueprintversion"] = in.BlueprintVersion
 	}
+
+	// read back from the cluster config rather than echoing prior state; an
+	// empty list is the same as unset for SDKv2 lists, so no diff when unset
+	obj["optional_addons"] = toArrayInterface(in.OptionalAddons)
 
 	if len(in.CloudProvider) > 0 {
 		obj["cloudprovider"] = in.CloudProvider

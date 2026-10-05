@@ -156,7 +156,9 @@ func (v SpecValue) Expand(ctx context.Context) (*rafay.EKSSpec, diag.Diagnostics
 	}
 	// rides along in the cluster config so the selection is in place for the
 	// first blueprint sync, rather than needing a publish after the cluster
-	// settles - which never runs if the cluster is slow to report ready
+	// settles - which never runs if the cluster is slow to report ready.
+	// Always sent ([] when unset) - an absent key keeps the current selection
+	spec.OptionalAddons = []string{}
 	if !v.OptionalAddons.IsNull() && !v.OptionalAddons.IsUnknown() {
 		diags.Append(v.OptionalAddons.ElementsAs(ctx, &spec.OptionalAddons, false)...)
 	}

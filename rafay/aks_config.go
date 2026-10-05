@@ -55,7 +55,7 @@ type AKSClusterSpec struct {
 	Type                      string                     `yaml:"type,omitempty"`
 	Blueprint                 string                     `yaml:"blueprint,omitempty"`
 	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
-	OptionalAddons            []string                   `yaml:"optionalAddons,omitempty"`
+	OptionalAddons            []string                   `yaml:"optionalAddons"`
 	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
 	AKSClusterConfig          *AKSClusterConfig          `yaml:"clusterConfig,omitempty"`
 	Sharing                   *V1ClusterSharing          `yaml:"sharing,omitempty"`

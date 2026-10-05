@@ -161,7 +161,8 @@ func (r *BlueprintSyncResource) ModifyPlan(ctx context.Context, req resource.Mod
 }
 
 // readStringListFromConfig extracts a write-only string list from config.
-// Returns nil when the attribute is unset or unknown.
+// Returns nil when the attribute is unset or unknown, and a non-nil empty
+// slice for an explicit [] (callers rely on telling the two apart).
 func readStringListFromConfig(ctx context.Context, config tfsdk.Config, attr string) ([]string, diag.Diagnostics) {
 	var listAttr types.List
 	diags := config.GetAttribute(ctx, path.Root(attr), &listAttr)
@@ -217,10 +218,10 @@ func isBlueprintSyncInProgress(edgeID, projectID string) (bool, error) {
 // assigned blueprint if blueprintName/blueprintVersion differ from what's
 // currently set, and publishes a blueprint sync.
 //
-// When addons or optionalAddons is non-empty, a selective sync is published
-// via PublishBlueprintCluster (addons requires forceSync=true, enforced by
-// ValidateConfig). Otherwise the full-blueprint PublishClusterBlueprint
-// path is used.
+// When addons is non-empty or optionalAddons is set (even to []), a selective
+// sync is published via PublishBlueprintCluster (addons requires
+// forceSync=true, enforced by ValidateConfig). Otherwise the full-blueprint
+// PublishClusterBlueprint path is used. See blueprintSyncPublishSelection.
 //
 // The returned outcome's observedBlueprint/observedVersion always reflect
 // what is actually assigned on the cluster: the requested values only if the
@@ -264,8 +265,9 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 		blueprintChanged = true
 	}
 	// GetCluster read back the selection of the current blueprint; send the one
-	// requested for the new blueprint so the update is valid against it
-	if blueprintChanged {
+	// requested for the new blueprint so the update is valid against it. When
+	// optional_addons is unset the current selection is kept as-is
+	if blueprintChanged && optionalAddons != nil {
 		clusterResp.OptionalAddons = optionalAddons
 	}
 
@@ -287,8 +289,8 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 		outcome.observedVersion = clusterResp.ClusterBlueprintVersion
 	}
 
-	if len(addons) > 0 || len(optionalAddons) > 0 {
-		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons, optionalAddons); err != nil {
+	if selective, selection := blueprintSyncPublishSelection(addons, optionalAddons, clusterResp.OptionalAddons); selective {
+		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons, selection); err != nil {
 			return outcome, fmt.Errorf("failed to publish blueprint for cluster %q: %w", clusterName, err)
 		}
 	} else {
@@ -299,6 +301,18 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 	log.Printf("blueprint publish triggered for cluster: %s", clusterName)
 
 	return outcome, nil
+}
+
+// blueprintSyncPublishSelection picks the publish path and the optional add-on
+// selection to send. PublishBlueprintCluster always replaces the selection, so
+// when optional_addons is unset (nil) it is given the cluster's current one;
+// an explicit [] (non-nil) deselects everything. With neither addons nor
+// optional_addons set, the full publish is used, which keeps the selection.
+func blueprintSyncPublishSelection(addons, optionalAddons, current []string) (selective bool, selection []string) {
+	if optionalAddons == nil {
+		return len(addons) > 0, current
+	}
+	return true, optionalAddons
 }
 
 // blueprintSyncResult is the terminal outcome of a ClusterBlueprintSync

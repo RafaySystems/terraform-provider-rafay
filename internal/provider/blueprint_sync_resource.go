@@ -263,6 +263,11 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 		clusterResp.ClusterBlueprintVersion = blueprintVersion
 		blueprintChanged = true
 	}
+	// GetCluster read back the selection of the current blueprint; send the one
+	// requested for the new blueprint so the update is valid against it
+	if blueprintChanged {
+		clusterResp.OptionalAddons = optionalAddons
+	}
 
 	// The publish call's own Metadata.ForceSync flag isn't sufficient on
 	// its own — the backend also expects the cluster's ForceBlueprintSync

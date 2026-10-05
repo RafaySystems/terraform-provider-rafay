@@ -56,6 +56,12 @@ func dataImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"optional_addons": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "Names of the blueprint's optional add-ons deployed on this cluster.",
+			},
 			"location": {
 				Type:     schema.TypeString,
 				Optional: true,

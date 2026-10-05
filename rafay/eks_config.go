@@ -84,11 +84,11 @@ type DeleteProtectionConfig struct {
 }
 
 type ZonalShiftConfig struct {
-	Enabled bool `yaml:"enabled,omitempty"`
+	Enabled *bool `yaml:"enabled,omitempty"`
 }
 
 type AutoZonalShiftConfig struct {
-	Enabled        bool     `yaml:"enabled,omitempty"`
+	Enabled        *bool    `yaml:"enabled,omitempty"`
 	AllowedWindows []string `yaml:"allowedWindows,omitempty"`
 	BlockedDates   []string `yaml:"blockedDates,omitempty"`
 	BlockedWindows []string `yaml:"blockedWindows,omitempty"`

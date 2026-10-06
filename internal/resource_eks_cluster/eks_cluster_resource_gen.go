@@ -3468,7 +3468,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "A map of annotations to assign to the EKS cluster.",
 									},
 									"force_update_version": schema.BoolAttribute{
-										Optional:            true,
+										Optional: true,
+										// Computed with a false default so an explicit false in config
+										// round-trips. Optional alone meant false was sent as nothing,
+										// read back as null, and re-planned on every run forever.
+										Computed:            true,
+										Default:             booldefault.StaticBool(false),
 										Description:         "Override upgrade-blocking readiness insights when the version changes, including a rollback to the previous minor version.",
 										MarkdownDescription: "Override upgrade-blocking readiness insights when the version changes, including a rollback to the previous minor version.",
 									},

@@ -34,9 +34,10 @@ resource "rafay_blueprint_sync" "cluster3" {
   blueprint_version = "v1"
 }
 
-# An apply syncs the blueprint when it or the optional add-on selection
-# changes. Pass -var 'force_sync=true' to re-sync on an apply with no change,
-# or to restart a sync already in progress (false errors out instead).
+# Every `terraform apply` re-publishes the blueprint, same as clicking
+# "publish" in the UI. force_sync only controls what happens if a sync is
+# already in progress: false errors out, true restarts it. Pass
+# -var 'force_sync=true' when you need to override an in-progress sync.
 resource "rafay_blueprint_sync" "cluster4" {
   cluster_name      = "demo-cluster4"
   project           = "defaultproject"
@@ -78,9 +79,9 @@ resource "rafay_blueprint_sync" "cluster6" {
 
 - `blueprint_name` (String) Name of the blueprint to assign to the cluster before syncing. Leave unset to keep the cluster's current blueprint. Always reflects the blueprint actually assigned on the cluster, even if a requested change fails to apply.
 - `blueprint_version` (String) Version of the blueprint to assign to the cluster before syncing. Leave unset to keep the cluster's current blueprint version. Always reflects the blueprint version actually assigned on the cluster, even if a requested change fails to apply.
-- `force_sync` (Boolean, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Re-syncs the blueprint on every apply when true, and restarts a sync already in progress (false errors out instead). When false or unset, an apply syncs only when the blueprint or the optional add-on selection changes. This value is never stored in state. Required when `addons` is set.
+- `force_sync` (Boolean, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Passed through to the backend's blueprint publish call to control how it handles a sync already in progress: false errors out, true restarts it. Every apply re-publishes regardless of this value — it only changes what's sent to the backend, matching the UI's publish action. This value is never stored in state. Required when `addons` is set.
 - `addons` (List of String, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Subset of blueprint addons to sync. Only valid with `force_sync=true`. When unset, the full blueprint is synced. This value is never stored in state.
-- `optional_addons` (List of String) Optional blueprint addons to deploy on this cluster when publishing. Addons marked optional on the blueprint are skipped unless listed here; `[]` deselects all of them. Leave unset to keep the cluster's current selection; removing it after it was set deselects all of them. Always reflects the selection on the cluster, so a plan shows any difference from it.
+- `optional_addons` (List of String, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Optional blueprint addons to deploy on this cluster when publishing. Addons marked optional on the blueprint will be skipped deploying or undeployed unless listed here. This value is never stored in state.
 
 ### Read-Only
 

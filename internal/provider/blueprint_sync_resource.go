@@ -4,14 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -107,8 +110,11 @@ func (r *BlueprintSyncResource) Schema(ctx context.Context, req resource.SchemaR
 			"optional_addons": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				WriteOnly:   true,
-				Description: "Optional blueprint addons to deploy on this cluster when publishing. Addons marked optional on the blueprint are skipped unless listed here. This value is never stored in state.",
+				Computed:    true,
+				Description: "Optional blueprint addons to deploy on this cluster when publishing. Addons marked optional on the blueprint are skipped unless listed here; [] deselects all of them. Leave unset to keep the cluster's current selection; removing it after it was set deselects all of them. Always reflects the selection on the cluster, so a plan shows any difference from it.",
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -140,27 +146,110 @@ func (r *BlueprintSyncResource) ValidateConfig(ctx context.Context, req resource
 	}
 }
 
-// ModifyPlan unconditionally forces a diff on id, so Update runs on every
-// apply — matching the UI, where clicking "publish" always calls the
-// backend regardless of a force flag. No dedicated "trigger" attribute is
-// needed: id already exists and is already Computed/UseStateForUnknown for
-// every other case. Create/Update always recompute id deterministically
-// from cluster_name and project, so this resolves cleanly once the apply
-// completes.
+// ModifyPlan forces a diff on id when force_sync=true, so Update re-syncs on
+// every apply that asks for it. Otherwise the plan only changes when the
+// blueprint or the optional add-on selection does, and an unchanged
+// configuration plans no changes. Create/Update always recompute id
+// deterministically from cluster_name and project, so a forced id resolves
+// cleanly once the apply completes.
 //
 // This never talks to the backend itself — it only shapes the diff that the
 // user reviews before approving `terraform apply`; the actual publish call
-// (with whatever force_sync is set to) only happens inside Create/Update.
+// only happens inside Create/Update.
 func (r *BlueprintSyncResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Destroy plans have a null plan/config; nothing to force.
 	if req.Plan.Raw.IsNull() {
 		return
 	}
 
+	if !req.State.Raw.IsNull() {
+		var configured, planned types.List
+		resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("optional_addons"), &configured)...)
+		resp.Diagnostics.Append(resp.Plan.GetAttribute(ctx, path.Root("optional_addons"), &planned)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("optional_addons"), plannedOptionalAddons(ctx, configured, req.Private, planned))...)
+		if mustRecordOptionalAddonsConfigured(ctx, configured, req.Private) {
+			resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("id"), types.StringUnknown())...)
+		}
+	}
+
+	var forceSync types.Bool
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("force_sync"), &forceSync)...)
+	if resp.Diagnostics.HasError() || !forceSync.ValueBool() {
+		return
+	}
 	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("id"), types.StringUnknown())...)
 }
 
-// readStringListFromConfig extracts a write-only string list from config.
+// optionalAddonsConfiguredKey is the private state key recording whether the
+// last apply had optional_addons set in its config.
+const optionalAddonsConfiguredKey = "optional_addons_configured"
+
+type privateState interface {
+	GetKey(ctx context.Context, key string) ([]byte, diag.Diagnostics)
+}
+
+// optionalAddonsWereConfigured reports whether the last apply set
+// optional_addons in its config.
+func optionalAddonsWereConfigured(ctx context.Context, private privateState) bool {
+	if private == nil {
+		return false
+	}
+	v, _ := private.GetKey(ctx, optionalAddonsConfiguredKey)
+	return string(v) == "true"
+}
+
+// mustRecordOptionalAddonsConfigured reports whether optional_addons is set
+// but the last apply did not record it: it was set with nothing else to change,
+// so no apply ran, or before this was tracked. One update records it (without
+// a sync, see blueprintSyncNeeded); otherwise removing it later would keep the
+// selection instead of deselecting it.
+func mustRecordOptionalAddonsConfigured(ctx context.Context, configured types.List, private privateState) bool {
+	return !configured.IsNull() && !optionalAddonsWereConfigured(ctx, private)
+}
+
+// blueprintSyncNeeded reports whether an update has anything to sync. An update
+// that only records the optional_addons flag does not.
+func blueprintSyncNeeded(plan, state BlueprintSyncModel, forceSync bool) bool {
+	return forceSync ||
+		!plan.BlueprintName.Equal(state.BlueprintName) ||
+		!plan.BlueprintVersion.Equal(state.BlueprintVersion) ||
+		!plan.OptionalAddons.Equal(state.OptionalAddons)
+}
+
+// plannedOptionalAddons plans optional_addons. Unset in the config keeps the
+// cluster's selection, unless the last apply set it: removing it from the
+// config then deselects every optional add-on, as an explicit [] does.
+func plannedOptionalAddons(ctx context.Context, configured types.List, private privateState, planned types.List) types.List {
+	if configured.IsNull() && optionalAddonsWereConfigured(ctx, private) {
+		return optionalAddonsState(nil)
+	}
+	return planned
+}
+
+// optionalAddonsState is the state value of a selection read from the cluster:
+// none selected is [], so it compares equal to an explicit [] in config.
+func optionalAddonsState(selection []string) types.List {
+	elems := make([]attr.Value, 0, len(selection))
+	for _, name := range selection {
+		elems = append(elems, types.StringValue(name))
+	}
+	return types.ListValueMust(types.StringType, elems)
+}
+
+// appliedOptionalAddons is the optional_addons value stored after an apply: the
+// planned one when known (the configured list, or the prior state when unset),
+// otherwise the selection the cluster was left with.
+func appliedOptionalAddons(planned types.List, observed []string) types.List {
+	if planned.IsUnknown() {
+		return optionalAddonsState(observed)
+	}
+	return planned
+}
+
+// readStringListFromConfig extracts a string list from config.
 // Returns nil when the attribute is unset or unknown, and a non-nil empty
 // slice for an explicit [] (callers rely on telling the two apart).
 func readStringListFromConfig(ctx context.Context, config tfsdk.Config, attr string) ([]string, diag.Diagnostics) {
@@ -185,10 +274,11 @@ func readStringListFromConfig(ctx context.Context, config tfsdk.Config, attr str
 // completion, plus the blueprint name/version actually observed on the
 // cluster (as opposed to what was merely requested).
 type blueprintSyncOutcome struct {
-	edgeID            string
-	projectID         string
-	observedBlueprint string
-	observedVersion   string
+	edgeID                 string
+	projectID              string
+	observedBlueprint      string
+	observedVersion        string
+	observedOptionalAddons []string
 }
 
 // isBlueprintSyncInProgress reports whether the cluster's ClusterBlueprintSync
@@ -240,10 +330,11 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 	}
 
 	outcome := &blueprintSyncOutcome{
-		edgeID:            clusterResp.ID,
-		projectID:         projectID,
-		observedBlueprint: clusterResp.ClusterBlueprint,
-		observedVersion:   clusterResp.ClusterBlueprintVersion,
+		edgeID:                 clusterResp.ID,
+		projectID:              projectID,
+		observedBlueprint:      clusterResp.ClusterBlueprint,
+		observedVersion:        clusterResp.ClusterBlueprintVersion,
+		observedOptionalAddons: clusterResp.OptionalAddons,
 	}
 
 	if !forceSync {
@@ -293,6 +384,7 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons, selection); err != nil {
 			return outcome, fmt.Errorf("failed to publish blueprint for cluster %q: %w", clusterName, err)
 		}
+		outcome.observedOptionalAddons = selection
 	} else {
 		if err := cluster.PublishClusterBlueprint(clusterName, projectID, forceSync); err != nil {
 			return outcome, fmt.Errorf("failed to publish blueprint for cluster %q: %w", clusterName, err)
@@ -416,9 +508,10 @@ func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	// force_sync, addons, and optional_addons are write-only: they're never
-	// in state, so they must be read from the raw config, not the
-	// plan/state model above.
+	// force_sync and addons are write-only: they're never in state, so they
+	// must be read from the raw config, not the plan/state model above. So is
+	// optional_addons: the plan holds the prior state when it is unset, and
+	// only the config tells unset (keep the selection) from a set list.
 	var forceSync types.Bool
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("force_sync"), &forceSync)...)
 	if resp.Diagnostics.HasError() {
@@ -460,20 +553,39 @@ func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateR
 	plan.ID = types.StringValue(fmt.Sprintf("%s/%s", clusterName, projectName))
 	plan.BlueprintName = types.StringValue(outcome.observedBlueprint)
 	plan.BlueprintVersion = types.StringValue(outcome.observedVersion)
+	plan.OptionalAddons = appliedOptionalAddons(plan.OptionalAddons, outcome.observedOptionalAddons)
 	// Write-only attributes must not be stored in state.
 	plan.ForceSync = types.BoolNull()
 	plan.Addons = types.ListNull(types.StringType)
-	plan.OptionalAddons = types.ListNull(types.StringType)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.Private.SetKey(ctx, optionalAddonsConfiguredKey, []byte(strconv.FormatBool(optionalAddons != nil)))...)
 }
 
-// Read is intentionally a no-op: resp.State already defaults to the prior
-// state. force_sync forces a diff via ModifyPlan instead of a Read-time side
-// effect, so `terraform plan`/refresh never talks to the backend — the sync
-// only runs inside Create/Update, which Terraform only calls after the user
-// approves `terraform apply`.
+// Read refreshes optional_addons from the cluster so a plan shows how the
+// configured selection differs from the one on the cluster. It only reads: the
+// sync still only runs inside Create/Update, after the user approves `terraform
+// apply`. The rest of the state is left as it was.
 func (r *BlueprintSyncResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state BlueprintSyncModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	clusterName := state.ClusterName.ValueString()
+	projectID, err := getProjectIDFromName(state.Project.ValueString())
+	if err == nil {
+		var c *models.ClusterDetails
+		if c, err = cluster.GetCluster(clusterName, projectID, uaDef); err == nil {
+			state.OptionalAddons = optionalAddonsState(c.OptionalAddons)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+			return
+		}
+	}
+	// keep the prior state, as before Read refreshed anything
+	resp.Diagnostics.AddWarning("Unable to refresh optional add-ons",
+		fmt.Sprintf("Could not read the optional add-on selection of cluster %q, so the plan compares against the last applied one: %s", clusterName, err))
 }
 
 func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -503,9 +615,29 @@ func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateR
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	configured := optionalAddons != nil
+	// removed from a config that set it: ModifyPlan planned [], deselect all
+	if !configured && optionalAddonsWereConfigured(ctx, req.Private) {
+		optionalAddons = []string{}
+	}
 
 	clusterName := plan.ClusterName.ValueString()
 	projectName := plan.Project.ValueString()
+
+	var state BlueprintSyncModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !blueprintSyncNeeded(plan, state, forceSync.ValueBool()) {
+		// only the optional_addons flag to record (see ModifyPlan): no sync
+		plan.ID = types.StringValue(fmt.Sprintf("%s/%s", clusterName, projectName))
+		plan.ForceSync = types.BoolNull()
+		plan.Addons = types.ListNull(types.StringType)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		resp.Diagnostics.Append(resp.Private.SetKey(ctx, optionalAddonsConfiguredKey, []byte(strconv.FormatBool(configured)))...)
+		return
+	}
 
 	outcome, err := triggerBlueprintSync(clusterName, projectName, forceSync.ValueBool(), plan.BlueprintName.ValueString(), plan.BlueprintVersion.ValueString(), addons, optionalAddons)
 	if err != nil {
@@ -528,12 +660,13 @@ func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateR
 	plan.ID = types.StringValue(fmt.Sprintf("%s/%s", clusterName, projectName))
 	plan.BlueprintName = types.StringValue(outcome.observedBlueprint)
 	plan.BlueprintVersion = types.StringValue(outcome.observedVersion)
+	plan.OptionalAddons = appliedOptionalAddons(plan.OptionalAddons, outcome.observedOptionalAddons)
 	// Write-only attributes must not be stored in state.
 	plan.ForceSync = types.BoolNull()
 	plan.Addons = types.ListNull(types.StringType)
-	plan.OptionalAddons = types.ListNull(types.StringType)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.Private.SetKey(ctx, optionalAddonsConfiguredKey, []byte(strconv.FormatBool(configured)))...)
 }
 
 func (r *BlueprintSyncResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

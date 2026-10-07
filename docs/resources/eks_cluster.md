@@ -1225,6 +1225,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Optional***
 
+- `force_update_version` - (Boolean) Proceed with a control plane version change even when EKS rollback readiness checks report blocking issues. Defaults to `false`. Only takes effect when `version` actually changes, and only for a control plane rollback - it is ignored for upgrades. The flag is recorded with the cluster, so it stays in effect for later version changes until it is removed from the configuration. **Warning:** overriding these checks can disrupt workloads pinned to the current version, such as Fargate pods.
 - `tags` - (Map of String) The AWS resource tags created by the vendor. 
 
 <a id="nestedblock--cluster_config--cloud_watch"></a>

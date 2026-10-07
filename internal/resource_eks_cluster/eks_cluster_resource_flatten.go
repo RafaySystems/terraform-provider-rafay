@@ -2241,6 +2241,12 @@ func (v *Metadata2Value) Flatten(ctx context.Context, in *rafay.EKSClusterConfig
 		v.Version = types.StringValue(in.Version)
 	}
 
+	// Always written, never left null. The server omits the key when the flag is
+	// not set, and leaving the attribute null then contradicted an explicit false
+	// in config, so Terraform reported a diff it could never satisfy - planned on
+	// every run, applied nothing, planned again.
+	v.ForceUpdateVersion = types.BoolValue(in.ForceUpdateVersion != nil && *in.ForceUpdateVersion)
+
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) > 0 {
 		tag := map[string]attr.Value{}

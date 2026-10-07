@@ -2365,6 +2365,16 @@
                                                         "string": {}
                                                     }
                                                 }
+                                            },
+                                            {
+                                                "name": "force_update_version",
+                                                "bool": {
+                                                    "description": "Override upgrade-blocking readiness insights when the version changes, including a rollback to the previous minor version.",
+                                                    "computed_optional_required": "computed_optional",
+                                                    "default": {
+                                                        "static": false
+                                                    }
+                                                }
                                             }
                                         ]
                                     }

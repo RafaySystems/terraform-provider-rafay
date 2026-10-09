@@ -85,20 +85,7 @@ func resourceAKSClusterV3() *schema.Resource {
 
 		SchemaVersion: 1,
 		Schema:        aksV3ClusterSchema(),
-		CustomizeDiff: validateAKSV3BlueprintBlocks,
 	}
-}
-
-// validateAKSV3BlueprintBlocks fails the plan when both blueprint blocks are
-// set: the server silently lets blueprint win. The check lives here because the
-// schema is shared with other resources and cannot carry ConflictsWith.
-func validateAKSV3BlueprintBlocks(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	bp, _ := d.Get("spec.0.blueprint").([]interface{})
-	bpc, _ := d.Get("spec.0.blueprint_config").([]interface{})
-	if len(bp) > 0 && len(bpc) > 0 {
-		return errors.New("spec: set either blueprint or blueprint_config, not both")
-	}
-	return nil
 }
 
 func resourceAKSClusterV3Create(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -563,12 +550,6 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		obj.Sharing = expandSharingSpecV3(v)
-	}
-
-	// either block selects the blueprint; the server takes both
-	if v, ok := in["blueprint"].([]interface{}); ok && len(v) > 0 {
-		bp := expandClusterV3Blueprint(v)
-		obj.Blueprint = &infrapb.ClusterBlueprint{Name: bp.Name, Version: bp.Version, OptionalAddons: bp.OptionalAddons}
 	}
 
 	if v, ok := in["blueprint_config"].([]interface{}); ok && len(v) > 0 {
@@ -2834,18 +2815,8 @@ func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{
 		obj["type"] = in.Type
 	}
 
-	// the server may return blueprint, the deprecated blueprintConfig or both;
-	// the value goes into the block the configuration uses, or every plan diffs
-	bp := in.BlueprintConfig
-	if in.Blueprint != nil {
-		bp = &infrapb.BlueprintConfig{Name: in.Blueprint.Name, Version: in.Blueprint.Version, OptionalAddons: in.Blueprint.OptionalAddons}
-	}
-	if bp != nil {
-		if configured, _ := obj["blueprint"].([]interface{}); len(configured) > 0 {
-			obj["blueprint"] = flattenClusterV3Blueprint(bp)
-		} else {
-			obj["blueprint_config"] = flattenClusterV3Blueprint(bp)
-		}
+	if in.BlueprintConfig != nil {
+		obj["blueprint_config"] = flattenClusterV3Blueprint(in.BlueprintConfig)
 	}
 
 	if len(in.CloudCredentials) > 0 {

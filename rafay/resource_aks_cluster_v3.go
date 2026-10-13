@@ -595,6 +595,10 @@ func expandClusterV3Blueprint(p []interface{}) *infrapb.BlueprintConfig {
 		obj.Version = v
 	}
 
+	if v, ok := in["optional_addons"].([]interface{}); ok && len(v) > 0 {
+		obj.OptionalAddons = toArrayString(v)
+	}
+
 	log.Println("expandClusterV3Blueprint obj", obj)
 	return &obj
 }
@@ -5372,6 +5376,10 @@ func flattenClusterV3Blueprint(in *infrapb.BlueprintConfig) []interface{} {
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version
+	}
+
+	if len(in.OptionalAddons) > 0 {
+		obj["optional_addons"] = toArrayInterface(in.OptionalAddons)
 	}
 
 	return []interface{}{obj}

@@ -138,6 +138,10 @@ func expandGKEClusterToV3Blueprint(p []interface{}) (*infrapb.ClusterBlueprint, 
 		return nil, errors.New("missing blueprint version")
 	}
 
+	if v, ok := in["optional_addons"].([]interface{}); ok && len(v) > 0 {
+		obj.OptionalAddons = toArrayString(v)
+	}
+
 	log.Println("expandGKEClusterToV3Blueprint obj", obj)
 	return obj, nil
 }

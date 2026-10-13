@@ -20,9 +20,9 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
-	_ resource.Resource                     = &BlueprintSyncResource{}
-	_ resource.ResourceWithModifyPlan       = &BlueprintSyncResource{}
-	_ resource.ResourceWithValidateConfig   = &BlueprintSyncResource{}
+	_ resource.Resource                   = &BlueprintSyncResource{}
+	_ resource.ResourceWithModifyPlan     = &BlueprintSyncResource{}
+	_ resource.ResourceWithValidateConfig = &BlueprintSyncResource{}
 )
 
 // partialSuccessStatus is a terminal ClusterBlueprintSync condition status
@@ -276,7 +276,9 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 	}
 
 	if len(addons) > 0 {
-		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons); err != nil {
+		// PublishBlueprintCluster always replaces the cluster's optional add-on
+		// selection, so pass the current one through to keep it unchanged.
+		if err := cluster.PublishBlueprintCluster(clusterName, projectID, outcome.observedBlueprint, outcome.observedVersion, forceSync, addons, clusterResp.OptionalAddons); err != nil {
 			return outcome, fmt.Errorf("failed to publish blueprint for cluster %q: %w", clusterName, err)
 		}
 	} else {

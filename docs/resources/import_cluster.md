@@ -92,6 +92,7 @@ output "bootstrap_path" {
 ***Optional***
 
 - `blueprint_version` - (String) The version of the blueprint.
+- `optional_addons` - (List of String) Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked `is_optional` on the blueprint are skipped unless listed here.
 - `description` - (String) The description for the cluster.
 - `kubeconfig_path` - (String) The path to the kubeconfig file.
 - `labels` - (Block) Labels are key/value pairs that are attached to the object.

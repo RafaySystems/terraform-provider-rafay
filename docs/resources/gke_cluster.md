@@ -537,6 +537,7 @@ resource "rafay_gke_cluster" "gke-scp-example" {
 
 - `name` (String) The name of the blueprint to be associated with the cluster. A blueprint defines the configuration and policy. Use blueprint to help standardize cluster configurations. 
 - `version` (String) The blueprint version to be associated with the cluster. 
+- `optional_addons` (List of String) Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked `is_optional` on the blueprint are skipped unless listed here.
 
 <a id="nestedblock--spec--proxy"></a>
 ### Nested Schema for `spec.proxy`

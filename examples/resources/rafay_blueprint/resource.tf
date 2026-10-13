@@ -276,3 +276,45 @@ resource "rafay_blueprint" "cost-blueprint" {
 
   }
 }
+
+# Example of a blueprint with optional addons.
+# Addons marked is_optional are not deployed by default; a cluster opts into
+# them when the blueprint is published to it.
+resource "rafay_blueprint" "optional_addons_demo" {
+  metadata {
+    name    = "optional-addons-demo"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+
+    # always deployed
+    custom_addons {
+      name    = "tfdemoaddon1"
+      version = "v1.0"
+    }
+
+    # authored as optional: not deployed unless a cluster selects it at sync
+    custom_addons {
+      name        = "tfdemoaddon4"
+      version     = "v1.0"
+      is_optional = true
+    }
+
+    # optional addon that still declares its ordering when it does get deployed
+    custom_addons {
+      name        = "tfdemoaddon5"
+      version     = "v1.0"
+      is_optional = true
+      depends_on  = ["tfdemoaddon1"]
+    }
+
+    sharing {
+      enabled = false
+    }
+  }
+}

@@ -55,7 +55,7 @@ Required:
 
 Optional:
 
-- `create_service_account` (Boolean) enable flag to create service account
+- `create_service_account` (Boolean) Creates the Kubernetes service account when unset or true, and deletes a Rafay-created service account when false. An existing value is kept when the argument is removed.
 - `permission_boundary_arn` (String) permission boundary ARN
 - `permission_policy` (String) permission policy document
 - `permission_policy_arns` (List of String) permission policy ARNs

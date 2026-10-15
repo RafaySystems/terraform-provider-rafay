@@ -71,6 +71,11 @@ func MksClusterDataSourceSchema(ctx context.Context) schema.Schema {
 							"name": schema.StringAttribute{
 								Computed: true,
 							},
+							"optional_addons": schema.ListAttribute{
+								ElementType: types.StringType,
+								Computed:    true,
+								Description: "Names of the blueprint's optional add-ons selected on this cluster",
+							},
 							"version": schema.StringAttribute{
 								Computed:    true,
 								Description: "Version of the blueprint",

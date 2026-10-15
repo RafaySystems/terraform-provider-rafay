@@ -56,6 +56,12 @@ func dataImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"optional_addons": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "Names of the blueprint's optional add-ons deployed on this cluster.",
+			},
 			"location": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -252,6 +258,11 @@ func dataImportClusterRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	if err := d.Set("blueprint_version", c.ClusterBlueprintVersion); err != nil {
 		log.Printf("set blueprint_version  error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("optional_addons", toArrayInterface(c.OptionalAddons)); err != nil {
+		log.Printf("set optional_addons error %s", err.Error())
 		return diag.FromErr(err)
 	}
 

@@ -221,6 +221,14 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 		return nil, errors.New("missing controlplane version in input")
 	}
 
+	if v, ok := in["capg_version"].(string); ok && len(v) > 0 {
+		obj.Gke.CapgVersion = v
+	}
+
+	if v, ok := in["capi_version"].(string); ok && len(v) > 0 {
+		obj.Gke.CapiVersion = v
+	}
+
 	var err error
 	// location
 	if v, ok := in["location"].([]interface{}); ok && len(v) > 0 {
@@ -1151,6 +1159,10 @@ func expandToV3GkeNodeSecurity(p []interface{}) (*infrapb.GkeNodeSecurity, error
 
 	if v, ok := in["enable_secure_boot"].(bool); ok {
 		obj.EnableSecureBoot = v
+	}
+
+	if v, ok := in["workload_metadata_mode"].(string); ok && v != "" {
+		obj.WorkloadMetadataMode = v
 	}
 
 	return obj, nil

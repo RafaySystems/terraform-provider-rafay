@@ -622,6 +622,8 @@ Optional:
 - `resource_labels` (Map of String) Use labels to manage resources in your organization and resource breakdown
 - `release_channel` (Block List, Max: 1) Release channel enrollment for the cluster. When enrolled, GKE automatically manages the cluster's Kubernetes version. (see [below for nested schema](#nestedblock--spec--config--release_channel))
 - `maintenance_policy` (Block List, Max: 1) Maintenance policy controls when GKE may perform automatic upgrades. (see [below for nested schema](#nestedblock--spec--config--maintenance_policy))
+- `capg_version` (String) Cluster API Provider GCP (CAPG) controller version deployed on the workload cluster (e.g., `v1.1.1-gke.16`). Day-2 updates must change only `capg_version` in a given apply — do not combine with `capi_version` or other cluster changes.
+- `capi_version` (String) Cluster API (CAPI) core controller version deployed on the workload cluster (e.g., `v1.9.4`). Day-2 updates must change only `capi_version` in a given apply — do not combine with `capg_version` or other cluster changes.
 
 
 <a id="nestedblock--spec--config--release_channel"></a>
@@ -951,6 +953,7 @@ Optional:
 
 - `enable_integrity_monitoring` (Boolean) Integrity monitoring lets you monitor and verify the runtime boot integrity of your shielded nodes using Cloud Monitoring
 - `enable_secure_boot` (Boolean) Secure boot helps protect your nodes against boot-level and kernel-level malware and rootkits
+- `workload_metadata_mode` (String) GKE Metadata Server mode for this node pool. Valid values: `gce_metadata`, `gke_metadata`. `gke_metadata` requires cluster Workload Identity. Leave unset to use the GKE default.
 
 
 <a id="nestedblock--spec--config--node_pools--auto_scaling"></a>

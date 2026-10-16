@@ -3473,6 +3473,16 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "A map of annotations to assign to the EKS cluster.",
 										MarkdownDescription: "A map of annotations to assign to the EKS cluster.",
 									},
+									"force_update_version": schema.BoolAttribute{
+										Optional: true,
+										// Computed with a false default so an explicit false in config
+										// round-trips. Optional alone meant false was sent as nothing,
+										// read back as null, and re-planned on every run forever.
+										Computed:            true,
+										Default:             booldefault.StaticBool(false),
+										Description:         "Override upgrade-blocking readiness insights when the version changes, including a rollback to the previous minor version.",
+										MarkdownDescription: "Override upgrade-blocking readiness insights when the version changes, including a rollback to the previous minor version.",
+									},
 									"name": schema.StringAttribute{
 										Required:            true,
 										Description:         "EKS Cluster name.",
@@ -63940,6 +63950,24 @@ func (t Metadata2Type) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 			fmt.Sprintf(`annotations expected to be basetypes.MapValue, was: %T`, annotationsAttribute))
 	}
 
+	forceUpdateVersionAttribute, ok := attributes["force_update_version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`force_update_version is missing from object`)
+
+		return nil, diags
+	}
+
+	forceUpdateVersionVal, ok := forceUpdateVersionAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`force_update_version expected to be basetypes.BoolValue, was: %T`, forceUpdateVersionAttribute))
+	}
+
 	nameAttribute, ok := attributes["name"]
 
 	if !ok {
@@ -64017,12 +64045,13 @@ func (t Metadata2Type) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 	}
 
 	return Metadata2Value{
-		Annotations: annotationsVal,
-		Name:        nameVal,
-		Region:      regionVal,
-		Tags:        tagsVal,
-		Version:     versionVal,
-		state:       attr.ValueStateKnown,
+		Annotations:        annotationsVal,
+		ForceUpdateVersion: forceUpdateVersionVal,
+		Name:               nameVal,
+		Region:             regionVal,
+		Tags:               tagsVal,
+		Version:            versionVal,
+		state:              attr.ValueStateKnown,
 	}, diags
 }
 
@@ -64107,6 +64136,24 @@ func NewMetadata2Value(attributeTypes map[string]attr.Type, attributes map[strin
 			fmt.Sprintf(`annotations expected to be basetypes.MapValue, was: %T`, annotationsAttribute))
 	}
 
+	forceUpdateVersionAttribute, ok := attributes["force_update_version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`force_update_version is missing from object`)
+
+		return NewMetadata2ValueUnknown(), diags
+	}
+
+	forceUpdateVersionVal, ok := forceUpdateVersionAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`force_update_version expected to be basetypes.BoolValue, was: %T`, forceUpdateVersionAttribute))
+	}
+
 	nameAttribute, ok := attributes["name"]
 
 	if !ok {
@@ -64184,12 +64231,13 @@ func NewMetadata2Value(attributeTypes map[string]attr.Type, attributes map[strin
 	}
 
 	return Metadata2Value{
-		Annotations: annotationsVal,
-		Name:        nameVal,
-		Region:      regionVal,
-		Tags:        tagsVal,
-		Version:     versionVal,
-		state:       attr.ValueStateKnown,
+		Annotations:        annotationsVal,
+		ForceUpdateVersion: forceUpdateVersionVal,
+		Name:               nameVal,
+		Region:             regionVal,
+		Tags:               tagsVal,
+		Version:            versionVal,
+		state:              attr.ValueStateKnown,
 	}, diags
 }
 
@@ -64261,16 +64309,17 @@ func (t Metadata2Type) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = Metadata2Value{}
 
 type Metadata2Value struct {
-	Annotations basetypes.MapValue    `tfsdk:"annotations"`
-	Name        basetypes.StringValue `tfsdk:"name"`
-	Region      basetypes.StringValue `tfsdk:"region"`
-	Tags        basetypes.MapValue    `tfsdk:"tags"`
-	Version     basetypes.StringValue `tfsdk:"version"`
-	state       attr.ValueState
+	Annotations        basetypes.MapValue    `tfsdk:"annotations"`
+	ForceUpdateVersion basetypes.BoolValue   `tfsdk:"force_update_version"`
+	Name               basetypes.StringValue `tfsdk:"name"`
+	Region             basetypes.StringValue `tfsdk:"region"`
+	Tags               basetypes.MapValue    `tfsdk:"tags"`
+	Version            basetypes.StringValue `tfsdk:"version"`
+	state              attr.ValueState
 }
 
 func (v Metadata2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 5)
+	attrTypes := make(map[string]tftypes.Type, 6)
 
 	var val tftypes.Value
 	var err error
@@ -64278,6 +64327,7 @@ func (v Metadata2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, er
 	attrTypes["annotations"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
+	attrTypes["force_update_version"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["name"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["region"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["tags"] = basetypes.MapType{
@@ -64289,7 +64339,7 @@ func (v Metadata2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, er
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 5)
+		vals := make(map[string]tftypes.Value, 6)
 
 		val, err = v.Annotations.ToTerraformValue(ctx)
 
@@ -64298,6 +64348,14 @@ func (v Metadata2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, er
 		}
 
 		vals["annotations"] = val
+
+		val, err = v.ForceUpdateVersion.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["force_update_version"] = val
 
 		val, err = v.Name.ToTerraformValue(ctx)
 
@@ -64377,8 +64435,9 @@ func (v Metadata2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 			"annotations": basetypes.MapType{
 				ElemType: types.StringType,
 			},
-			"name":   basetypes.StringType{},
-			"region": basetypes.StringType{},
+			"force_update_version": basetypes.BoolType{},
+			"name":                 basetypes.StringType{},
+			"region":               basetypes.StringType{},
 			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -64403,8 +64462,9 @@ func (v Metadata2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 			"annotations": basetypes.MapType{
 				ElemType: types.StringType,
 			},
-			"name":   basetypes.StringType{},
-			"region": basetypes.StringType{},
+			"force_update_version": basetypes.BoolType{},
+			"name":                 basetypes.StringType{},
+			"region":               basetypes.StringType{},
 			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -64416,8 +64476,9 @@ func (v Metadata2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 		"annotations": basetypes.MapType{
 			ElemType: types.StringType,
 		},
-		"name":   basetypes.StringType{},
-		"region": basetypes.StringType{},
+		"force_update_version": basetypes.BoolType{},
+		"name":                 basetypes.StringType{},
+		"region":               basetypes.StringType{},
 		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
@@ -64435,11 +64496,12 @@ func (v Metadata2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"annotations": annotationsVal,
-			"name":        v.Name,
-			"region":      v.Region,
-			"tags":        tagsVal,
-			"version":     v.Version,
+			"annotations":          annotationsVal,
+			"force_update_version": v.ForceUpdateVersion,
+			"name":                 v.Name,
+			"region":               v.Region,
+			"tags":                 tagsVal,
+			"version":              v.Version,
 		})
 
 	return objVal, diags
@@ -64461,6 +64523,10 @@ func (v Metadata2Value) Equal(o attr.Value) bool {
 	}
 
 	if !v.Annotations.Equal(other.Annotations) {
+		return false
+	}
+
+	if !v.ForceUpdateVersion.Equal(other.ForceUpdateVersion) {
 		return false
 	}
 
@@ -64496,8 +64562,9 @@ func (v Metadata2Value) AttributeTypes(ctx context.Context) map[string]attr.Type
 		"annotations": basetypes.MapType{
 			ElemType: types.StringType,
 		},
-		"name":   basetypes.StringType{},
-		"region": basetypes.StringType{},
+		"force_update_version": basetypes.BoolType{},
+		"name":                 basetypes.StringType{},
+		"region":               basetypes.StringType{},
 		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},

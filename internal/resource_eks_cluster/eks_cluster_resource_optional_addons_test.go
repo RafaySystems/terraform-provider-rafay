@@ -14,9 +14,9 @@ import (
 // the cluster resource is declarative: an unset or empty optional_addons must
 // still reach the API as an explicit [] so the selection is cleared
 func TestSpecExpandAlwaysSendsOptionalAddons(t *testing.T) {
-	cases := map[string]types.List{
-		"null":  types.ListNull(types.StringType),
-		"empty": types.ListValueMust(types.StringType, []attr.Value{}),
+	cases := map[string]types.Set{
+		"null":  types.SetNull(types.StringType),
+		"empty": types.SetValueMust(types.StringType, []attr.Value{}),
 	}
 	for name, oa := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -37,16 +37,18 @@ func TestSpecExpandAlwaysSendsOptionalAddons(t *testing.T) {
 }
 
 func TestSpecFlattenKeepsEmptyOptionalAddons(t *testing.T) {
-	empty := types.ListValueMust(types.StringType, []attr.Value{})
+	empty := types.SetValueMust(types.StringType, []attr.Value{})
 	cases := []struct {
 		name  string
 		in    []string
-		state types.List
-		want  types.List
+		state types.Set
+		want  types.Set
 	}{
 		{"config [] api none", nil, empty, empty},
-		{"config unset api none", nil, types.ListNull(types.StringType), types.ListNull(types.StringType)},
-		{"config [] api has a", []string{"a"}, empty, types.ListValueMust(types.StringType, []attr.Value{types.StringValue("a")})},
+		{"config unset api none", nil, types.SetNull(types.StringType), types.SetNull(types.StringType)},
+		{"config [] api has a", []string{"a"}, empty, types.SetValueMust(types.StringType, []attr.Value{types.StringValue("a")})},
+		// a set, so the API returning the selection in another order is no change
+		{"api returns another order", []string{"b", "a"}, types.SetValueMust(types.StringType, []attr.Value{types.StringValue("a"), types.StringValue("b")}), types.SetValueMust(types.StringType, []attr.Value{types.StringValue("a"), types.StringValue("b")})},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

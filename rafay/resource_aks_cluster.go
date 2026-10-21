@@ -144,7 +144,7 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Description: "Blueprint version to be associated with the cluster. Default will be the latest version",
 		},
 		"optional_addons": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
@@ -2455,8 +2455,7 @@ func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec 
 	// settles - which never runs if the cluster is slow to report ready.
 	// Always sent (non-nil, so it marshals as []) - an absent key keeps the
 	// current selection, so unset/[] must go out as [] to deselect
-	oa, _ := in["optional_addons"].([]interface{})
-	obj.OptionalAddons = toArrayString(oa)
+	obj.OptionalAddons = optionalAddonNames(in["optional_addons"])
 
 	if v, ok := in["cloudprovider"].(string); ok && len(v) > 0 {
 		obj.CloudProvider = v
@@ -4479,7 +4478,7 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Val
 	}
 
 	// read back from the cluster config rather than echoing prior state; an
-	// empty list is the same as unset for SDKv2 lists, so no diff when unset
+	// empty set is the same as unset for SDKv2 sets, so no diff when unset
 	obj["optional_addons"] = toArrayInterface(in.OptionalAddons)
 
 	if len(in.CloudProvider) > 0 {

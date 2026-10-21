@@ -66,7 +66,7 @@ func resourceImportCluster() *schema.Resource {
 				Optional: true,
 			},
 			"optional_addons": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
@@ -486,7 +486,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 
-	optionalAddons := toArrayString(d.Get("optional_addons").([]interface{}))
+	optionalAddons := optionalAddonNames(d.Get("optional_addons"))
 	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string),
 		d.Get("blueprint").(string),
 		d.Get("location").(string),
@@ -716,7 +716,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 	// update system_components_placement if provided
 	cluster_resp.SystemComponentsPlacement = expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
-	cluster_resp.OptionalAddons = toArrayString(d.Get("optional_addons").([]interface{}))
+	cluster_resp.OptionalAddons = optionalAddonNames(d.Get("optional_addons"))
 
 	//update cluster to send updated cluster details to core
 	err = cluster.UpdateCluster(cluster_resp, uaDef)
@@ -726,7 +726,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//publish cluster bp
-	optionalAddons := toArrayString(d.Get("optional_addons").([]interface{}))
+	optionalAddons := optionalAddonNames(d.Get("optional_addons"))
 	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) || d.HasChange("optional_addons") {
 		log.Printf("publishing cluster blueprint")
 		if err := cluster.PublishBlueprintCluster(d.Get("clustername").(string), project_id, cluster_resp.ClusterBlueprint, cluster_resp.ClusterBlueprintVersion, false, nil, optionalAddons); err != nil {

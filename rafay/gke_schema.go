@@ -123,7 +123,7 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 	config := spec.Schema["config"].Elem.(*schema.Resource)
 
 	ctype := spec.Schema["type"]
-	blueprint := spec.Schema["blueprint"]
+	blueprint := optionalAddonsBlueprintSchema(spec.Schema["blueprint"])
 	cc := spec.Schema["cloud_credentials"]
 	proxy := spec.Schema["proxy"]
 	sharing := spec.Schema["sharing"]

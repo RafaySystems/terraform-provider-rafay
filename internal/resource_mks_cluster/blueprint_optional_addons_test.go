@@ -11,17 +11,27 @@ import (
 
 func TestBlueprintFromHubOptionalAddons(t *testing.T) {
 	ctx := context.Background()
-	empty := types.ListValueMust(types.StringType, []attr.Value{})
+	empty := types.SetValueMust(types.StringType, []attr.Value{})
 	tests := []struct {
 		name     string
-		prior    types.List
+		prior    types.Set
 		hub      []string
 		wantNull bool
 		wantLen  int
 	}{
-		{"empty list in config stays empty", empty, nil, false, 0},
-		{"unset stays null", types.ListNull(types.StringType), nil, true, 0},
+		{"empty set in config stays empty", empty, nil, false, 0},
+		{"unset stays null", types.SetNull(types.StringType), nil, true, 0},
 		{"api value wins", empty, []string{"a"}, false, 1},
+	}
+	// a set, so the API returning the selection in another order is no change
+	prior := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("a"), types.StringValue("b")})
+	v := BlueprintValue{OptionalAddons: prior}
+	obj, diags := v.FromHub(ctx, &infrapb.ClusterBlueprint{Name: "bp", Version: "v2", OptionalAddons: []string{"b", "a"}})
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	if got := obj.Attributes()["optional_addons"].(types.Set); !got.Equal(prior) {
+		t.Errorf("api returns another order: got %v, want %v", got, prior)
 	}
 	for _, tt := range tests {
 		v := BlueprintValue{OptionalAddons: tt.prior}
@@ -29,7 +39,7 @@ func TestBlueprintFromHubOptionalAddons(t *testing.T) {
 		if diags.HasError() {
 			t.Fatalf("%s: %v", tt.name, diags)
 		}
-		got := obj.Attributes()["optional_addons"].(types.List)
+		got := obj.Attributes()["optional_addons"].(types.Set)
 		if got.IsNull() != tt.wantNull || len(got.Elements()) != tt.wantLen {
 			t.Errorf("%s: got %v", tt.name, got)
 		}

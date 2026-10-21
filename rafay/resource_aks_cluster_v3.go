@@ -40,7 +40,9 @@ func suppressNoProxyDiff(_, old, new string, _ *schema.ResourceData) bool {
 }
 
 // aksV3ClusterSchema injects DiffSuppressFunc onto no_proxy fields so that
-// whitespace-only differences (e.g. "a, b" vs "a,b") are not treated as drift.
+// whitespace-only differences (e.g. "a, b" vs "a,b") are not treated as drift,
+// and onto the blueprint's optional_addons (in blueprint or blueprint_config)
+// so their order is not either.
 func aksV3ClusterSchema() map[string]*schema.Schema {
 	s := resource.ClusterSchema.Schema
 	spec, ok := s["spec"]
@@ -50,6 +52,11 @@ func aksV3ClusterSchema() map[string]*schema.Schema {
 	specResource, ok := spec.Elem.(*schema.Resource)
 	if !ok {
 		return s
+	}
+	for _, blockName := range []string{"blueprint", "blueprint_config"} {
+		if blueprint, ok := specResource.Schema[blockName]; ok {
+			specResource.Schema[blockName] = optionalAddonsBlueprintSchema(blueprint)
+		}
 	}
 	for _, blockName := range []string{"proxy_config", "proxy"} {
 		block, ok := specResource.Schema[blockName]

@@ -66,10 +66,11 @@ func resourceImportCluster() *schema.Resource {
 				Optional: true,
 			},
 			"optional_addons": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+				Type:             schema.TypeList,
+				Optional:         true,
+				Elem:             &schema.Schema{Type: schema.TypeString},
+				Description:      "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+				DiffSuppressFunc: suppressOptionalAddonsOrder,
 			},
 			"location": {
 				Type:     schema.TypeString,

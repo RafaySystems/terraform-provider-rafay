@@ -144,10 +144,11 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Description: "Blueprint version to be associated with the cluster. Default will be the latest version",
 		},
 		"optional_addons": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Elem:        &schema.Schema{Type: schema.TypeString},
-			Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+			Type:             schema.TypeList,
+			Optional:         true,
+			Elem:             &schema.Schema{Type: schema.TypeString},
+			Description:      "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+			DiffSuppressFunc: suppressOptionalAddonsOrder,
 		},
 		"cloudprovider": {
 			Type:        schema.TypeString,

@@ -105,7 +105,7 @@
 											},
 											{
 												"name": "optional_addons",
-												"list": {
+												"set": {
 													"computed_optional_required": "optional",
 													"element_type": {
 														"string": {}

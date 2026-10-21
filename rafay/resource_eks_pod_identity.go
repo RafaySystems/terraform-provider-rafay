@@ -110,6 +110,15 @@ func expandEKSPodIdentityResource(p []interface{}, rawSpec cty.Value) []*eksPodI
 	return out
 }
 
+// podIdentityRawSpec returns spec only when raw config is a known object that has it.
+// Destroy passes a null config after the instance leaves configuration, and GetAttr panics on that null.
+func podIdentityRawSpec(rawConfig cty.Value) cty.Value {
+	if rawConfig.IsNull() || !rawConfig.IsKnown() || !rawConfig.Type().IsObjectType() || !rawConfig.Type().HasAttribute("spec") {
+		return cty.NullVal(cty.DynamicPseudoType)
+	}
+	return rawConfig.GetAttr("spec")
+}
+
 func podIdentityRawSlice(value cty.Value) ([]cty.Value, bool) {
 	if value.IsNull() || !value.IsKnown() {
 		return nil, false
@@ -204,7 +213,7 @@ func resourceEksPodIdentityUpdate(ctx context.Context, d *schema.ResourceData, m
 	metadata := &Metadata{}
 
 	if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
-		podIdentity = expandEKSPodIdentityResource(v, d.GetRawConfig().GetAttr("spec"))
+		podIdentity = expandEKSPodIdentityResource(v, podIdentityRawSpec(d.GetRawConfig()))
 	} else {
 		return diag.FromErr(fmt.Errorf("spec not specified"))
 	}
@@ -299,7 +308,7 @@ func resourceEksPodIdentityUpsert(ctx context.Context, d *schema.ResourceData, m
 	metadata := &Metadata{}
 
 	if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
-		podIdentity = expandEKSPodIdentityResource(v, d.GetRawConfig().GetAttr("spec"))
+		podIdentity = expandEKSPodIdentityResource(v, podIdentityRawSpec(d.GetRawConfig()))
 	} else {
 		return diag.FromErr(fmt.Errorf("spec not specified"))
 	}
@@ -520,7 +529,7 @@ func resourceEksPodIdentityDelete(ctx context.Context, d *schema.ResourceData, m
 	podIdentity := []*eksPodIdentityResourceAssociation{}
 
 	if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
-		podIdentity = expandEKSPodIdentityResource(v, d.GetRawConfig().GetAttr("spec"))
+		podIdentity = expandEKSPodIdentityResource(v, podIdentityRawSpec(d.GetRawConfig()))
 	} else {
 		return diag.FromErr(fmt.Errorf("spec not specified"))
 	}

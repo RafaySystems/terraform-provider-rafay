@@ -556,6 +556,11 @@ func configMetadataField() map[string]*schema.Schema {
 			Default:     "1.20",
 			Description: "Valid variants are: '1.16', '1.17', '1.18', '1.19', '1.20' (default), '1.21'.",
 		},
+		"force_update_version": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Override upgrade-blocking readiness insights when changing version, including rolling back to the previous minor version. Only takes effect when version actually changes, and remains in effect for subsequent version changes while set.",
+		},
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
@@ -2796,6 +2801,12 @@ func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
 	}
+	// Only emitted when true: a false value is indistinguishable from "unset" in the
+	// TF schema, and sending an explicit false would add a key to the wire config on
+	// every apply for users who never opted in.
+	if v, ok := in["force_update_version"].(bool); ok && v {
+		obj.ForceUpdateVersion = &v
+	}
 	if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Tags = toMapString(v)
 	}
@@ -4838,6 +4849,12 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 	}
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version
+	}
+	// Only surfaced when the server actually returned it. Writing false for an
+	// absent value would make Terraform report drift against configs that never
+	// set the flag.
+	if in.ForceUpdateVersion != nil {
+		obj["force_update_version"] = *in.ForceUpdateVersion
 	}
 
 	if in.Tags != nil && len(in.Tags) > 0 {

@@ -820,18 +820,8 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 	}
 
 	if !v.Nodepools.IsNull() && !v.Nodepools.IsUnknown() {
-		var declared []poolSpec
-		for name, el := range v.Nodepools.Elements() {
-			np, ok := el.(NodepoolsValue)
-			if !ok {
-				continue
-			}
-			declared = append(declared, poolSpec{
-				Name:       name,
-				Version:    getStringValue(np.KubernetesVersion),
-				HasVersion: !np.KubernetesVersion.IsNull() && !np.KubernetesVersion.IsUnknown(),
-			})
-		}
+		declared, d := declaredPoolSpecs(v.Nodepools)
+		diags = append(diags, d...)
 		hub.Nodepools = nodepoolsToHub(declared)
 	}
 
@@ -995,17 +985,8 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 	declaredSet := !v.Nodepools.IsNull() && !v.Nodepools.IsUnknown()
 	var declaredPools []poolSpec
 	if declaredSet {
-		for name, el := range v.Nodepools.Elements() {
-			np, ok := el.(NodepoolsValue)
-			if !ok {
-				continue
-			}
-			declaredPools = append(declaredPools, poolSpec{
-				Name:       name,
-				Version:    getStringValue(np.KubernetesVersion),
-				HasVersion: !np.KubernetesVersion.IsNull() && !np.KubernetesVersion.IsUnknown(),
-			})
-		}
+		declaredPools, d = declaredPoolSpecs(v.Nodepools)
+		diags = append(diags, d...)
 	}
 	outPools, keepPools := nodepoolsFromHub(declaredPools, declaredSet, hub.Nodepools, hub.KubernetesVersion)
 	if !keepPools {

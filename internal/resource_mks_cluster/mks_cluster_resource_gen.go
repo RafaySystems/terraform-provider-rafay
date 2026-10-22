@@ -277,8 +277,8 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 									Attributes: map[string]schema.Attribute{
 										"kubernetes_version": schema.StringAttribute{
 											Optional:            true,
-											Description:         "Kubernetes version of the nodepool's nodes; omit to follow the control plane version",
-											MarkdownDescription: "Kubernetes version of the nodepool's nodes; omit to follow the control plane version",
+											Description:         "Kubernetes version for the pool's nodes. Omit to leave the pool unmanaged.",
+											MarkdownDescription: "Kubernetes version for the pool's nodes. Omit to leave the pool unmanaged.",
 										},
 									},
 									CustomType: NodepoolsType{
@@ -288,8 +288,8 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 								Optional:            true,
-								Description:         "Nodepools keyed by pool name",
-								MarkdownDescription: "Nodepools keyed by pool name",
+								Description:         "Nodepools keyed by pool name; omit kubernetes_version to leave the pool unmanaged",
+								MarkdownDescription: "Nodepools keyed by pool name; omit kubernetes_version to leave the pool unmanaged",
 							},
 							"nodes": schema.MapNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{

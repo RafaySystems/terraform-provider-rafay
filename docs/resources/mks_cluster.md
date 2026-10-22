@@ -630,6 +630,7 @@ resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
 - `location` (String) The data center location where the cluster nodes will be launched
 - `oidc_configuration` (Attributes) OIDC configuration for the MKS cluster service account issuer and API audiences (see [below for nested schema](#nestedatt--spec--config--oidc_configuration))
 - `coredns_configuration` (String) Advanced CoreDNS settings in native Corefile format, for example custom server blocks to forward specific domains to upstream DNS servers.
+- `nodepools` (Map of Object) Nodepools keyed by pool name (see [below for nested schema](#nestedatt--spec--config--nodepools))
 
 <a id="nestedatt--spec--config--network"></a>
 ### Nested Schema for `spec.config.network`
@@ -745,6 +746,14 @@ resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
 
 - `service_account_issuer` (String) End point for identifying this cluster as the issuer of service account OIDC tokens.
 - `api_audiences` (Map of String) Expected audience for service account tokens.
+
+<a id="nestedatt--spec--config--nodepools"></a>
+
+### Nested Schema for `spec.config.nodepools`
+
+**Optional**
+
+- `kubernetes_version` (String) Kubernetes version of the nodepool's nodes; omit to follow the control plane version
 
 <a id="nestedatt--spec--proxy"></a>
 

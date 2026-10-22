@@ -365,6 +365,25 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Description:         "MKS Cluster Network Specification",
 								MarkdownDescription: "MKS Cluster Network Specification",
 							},
+							"nodepools": schema.MapNestedAttribute{
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"kubernetes_version": schema.StringAttribute{
+											Optional:            true,
+											Description:         "Kubernetes version of the nodepool's nodes; omit to follow the control plane version",
+											MarkdownDescription: "Kubernetes version of the nodepool's nodes; omit to follow the control plane version",
+										},
+									},
+									CustomType: NodepoolsType{
+										ObjectType: types.ObjectType{
+											AttrTypes: NodepoolsValue{}.AttributeTypes(ctx),
+										},
+									},
+								},
+								Optional:            true,
+								Description:         "Nodepools keyed by pool name",
+								MarkdownDescription: "Nodepools keyed by pool name",
+							},
 							"nodes": schema.MapNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
@@ -2716,6 +2735,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`network expected to be basetypes.ObjectValue, was: %T`, networkAttribute))
 	}
 
+	nodepoolsAttribute, ok := attributes["nodepools"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`nodepools is missing from object`)
+
+		return nil, diags
+	}
+
+	nodepoolsVal, ok := nodepoolsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`nodepools expected to be basetypes.MapValue, was: %T`, nodepoolsAttribute))
+	}
+
 	nodesAttribute, ok := attributes["nodes"]
 
 	if !ok {
@@ -2787,6 +2824,7 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 		KubernetesVersion:             kubernetesVersionVal,
 		Location:                      locationVal,
 		Network:                       networkVal,
+		Nodepools:                     nodepoolsVal,
 		Nodes:                         nodesVal,
 		OidcConfiguration:             oidcConfigurationVal,
 		PlatformVersion:               platformVersionVal,
@@ -3073,6 +3111,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`network expected to be basetypes.ObjectValue, was: %T`, networkAttribute))
 	}
 
+	nodepoolsAttribute, ok := attributes["nodepools"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`nodepools is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	nodepoolsVal, ok := nodepoolsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`nodepools expected to be basetypes.MapValue, was: %T`, nodepoolsAttribute))
+	}
+
 	nodesAttribute, ok := attributes["nodes"]
 
 	if !ok {
@@ -3144,6 +3200,7 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 		KubernetesVersion:             kubernetesVersionVal,
 		Location:                      locationVal,
 		Network:                       networkVal,
+		Nodepools:                     nodepoolsVal,
 		Nodes:                         nodesVal,
 		OidcConfiguration:             oidcConfigurationVal,
 		PlatformVersion:               platformVersionVal,
@@ -3231,6 +3288,7 @@ type ConfigValue struct {
 	KubernetesVersion             basetypes.StringValue `tfsdk:"kubernetes_version"`
 	Location                      basetypes.StringValue `tfsdk:"location"`
 	Network                       basetypes.ObjectValue `tfsdk:"network"`
+	Nodepools                     basetypes.MapValue    `tfsdk:"nodepools"`
 	Nodes                         basetypes.MapValue    `tfsdk:"nodes"`
 	OidcConfiguration             basetypes.ObjectValue `tfsdk:"oidc_configuration"`
 	PlatformVersion               basetypes.StringValue `tfsdk:"platform_version"`
@@ -3238,7 +3296,7 @@ type ConfigValue struct {
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 15)
+	attrTypes := make(map[string]tftypes.Type, 16)
 
 	var val tftypes.Value
 	var err error
@@ -3265,6 +3323,9 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["network"] = basetypes.ObjectType{
 		AttrTypes: NetworkValue{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
+	attrTypes["nodepools"] = basetypes.MapType{
+		ElemType: NodepoolsValue{}.Type(ctx),
+	}.TerraformType(ctx)
 	attrTypes["nodes"] = basetypes.MapType{
 		ElemType: NodesValue{}.Type(ctx),
 	}.TerraformType(ctx)
@@ -3277,7 +3338,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 15)
+		vals := make(map[string]tftypes.Value, 16)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -3374,6 +3435,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["network"] = val
+
+		val, err = v.Nodepools.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["nodepools"] = val
 
 		val, err = v.Nodes.ToTerraformValue(ctx)
 
@@ -3512,6 +3581,35 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		)
 	}
 
+	nodepools := types.MapValueMust(
+		NodepoolsType{
+			basetypes.ObjectType{
+				AttrTypes: NodepoolsValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.Nodepools.Elements(),
+	)
+
+	if v.Nodepools.IsNull() {
+		nodepools = types.MapNull(
+			NodepoolsType{
+				basetypes.ObjectType{
+					AttrTypes: NodepoolsValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.Nodepools.IsUnknown() {
+		nodepools = types.MapUnknown(
+			NodepoolsType{
+				basetypes.ObjectType{
+					AttrTypes: NodepoolsValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	nodes := types.MapValueMust(
 		NodesType{
 			basetypes.ObjectType{
@@ -3598,6 +3696,9 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"network": basetypes.ObjectType{
 				AttrTypes: NetworkValue{}.AttributeTypes(ctx),
 			},
+			"nodepools": basetypes.MapType{
+				ElemType: NodepoolsValue{}.Type(ctx),
+			},
 			"nodes": basetypes.MapType{
 				ElemType: NodesValue{}.Type(ctx),
 			},
@@ -3631,6 +3732,9 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"network": basetypes.ObjectType{
 			AttrTypes: NetworkValue{}.AttributeTypes(ctx),
 		},
+		"nodepools": basetypes.MapType{
+			ElemType: NodepoolsValue{}.Type(ctx),
+		},
 		"nodes": basetypes.MapType{
 			ElemType: NodesValue{}.Type(ctx),
 		},
@@ -3663,6 +3767,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"kubernetes_version":              v.KubernetesVersion,
 			"location":                        v.Location,
 			"network":                         network,
+			"nodepools":                       nodepools,
 			"nodes":                           nodes,
 			"oidc_configuration":              oidcConfiguration,
 			"platform_version":                v.PlatformVersion,
@@ -3734,6 +3839,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.Nodepools.Equal(other.Nodepools) {
+		return false
+	}
+
 	if !v.Nodes.Equal(other.Nodes) {
 		return false
 	}
@@ -3780,6 +3889,9 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"location":           basetypes.StringType{},
 		"network": basetypes.ObjectType{
 			AttrTypes: NetworkValue{}.AttributeTypes(ctx),
+		},
+		"nodepools": basetypes.MapType{
+			ElemType: NodepoolsValue{}.Type(ctx),
 		},
 		"nodes": basetypes.MapType{
 			ElemType: NodesValue{}.Type(ctx),
@@ -8298,6 +8410,330 @@ func (v Ipv6Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"pod_subnet":     basetypes.StringType{},
 		"service_subnet": basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = NodepoolsType{}
+
+type NodepoolsType struct {
+	basetypes.ObjectType
+}
+
+func (t NodepoolsType) Equal(o attr.Type) bool {
+	other, ok := o.(NodepoolsType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t NodepoolsType) String() string {
+	return "NodepoolsType"
+}
+
+func (t NodepoolsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	kubernetesVersionAttribute, ok := attributes["kubernetes_version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kubernetes_version is missing from object`)
+
+		return nil, diags
+	}
+
+	kubernetesVersionVal, ok := kubernetesVersionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kubernetes_version expected to be basetypes.StringValue, was: %T`, kubernetesVersionAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return NodepoolsValue{
+		KubernetesVersion: kubernetesVersionVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodepoolsValueNull() NodepoolsValue {
+	return NodepoolsValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewNodepoolsValueUnknown() NodepoolsValue {
+	return NodepoolsValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewNodepoolsValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (NodepoolsValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing NodepoolsValue Attribute Value",
+				"While creating a NodepoolsValue value, a missing attribute value was detected. "+
+					"A NodepoolsValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodepoolsValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid NodepoolsValue Attribute Type",
+				"While creating a NodepoolsValue value, an invalid attribute value was detected. "+
+					"A NodepoolsValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodepoolsValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("NodepoolsValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra NodepoolsValue Attribute Value",
+				"While creating a NodepoolsValue value, an extra attribute value was detected. "+
+					"A NodepoolsValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra NodepoolsValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewNodepoolsValueUnknown(), diags
+	}
+
+	kubernetesVersionAttribute, ok := attributes["kubernetes_version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kubernetes_version is missing from object`)
+
+		return NewNodepoolsValueUnknown(), diags
+	}
+
+	kubernetesVersionVal, ok := kubernetesVersionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kubernetes_version expected to be basetypes.StringValue, was: %T`, kubernetesVersionAttribute))
+	}
+
+	if diags.HasError() {
+		return NewNodepoolsValueUnknown(), diags
+	}
+
+	return NodepoolsValue{
+		KubernetesVersion: kubernetesVersionVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodepoolsValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) NodepoolsValue {
+	object, diags := NewNodepoolsValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewNodepoolsValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t NodepoolsType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewNodepoolsValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewNodepoolsValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewNodepoolsValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewNodepoolsValueMust(NodepoolsValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t NodepoolsType) ValueType(ctx context.Context) attr.Value {
+	return NodepoolsValue{}
+}
+
+var _ basetypes.ObjectValuable = NodepoolsValue{}
+
+type NodepoolsValue struct {
+	KubernetesVersion basetypes.StringValue `tfsdk:"kubernetes_version"`
+	state             attr.ValueState
+}
+
+func (v NodepoolsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["kubernetes_version"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.KubernetesVersion.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kubernetes_version"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v NodepoolsValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v NodepoolsValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v NodepoolsValue) String() string {
+	return "NodepoolsValue"
+}
+
+func (v NodepoolsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"kubernetes_version": basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"kubernetes_version": v.KubernetesVersion,
+		})
+
+	return objVal, diags
+}
+
+func (v NodepoolsValue) Equal(o attr.Value) bool {
+	other, ok := o.(NodepoolsValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.KubernetesVersion.Equal(other.KubernetesVersion) {
+		return false
+	}
+
+	return true
+}
+
+func (v NodepoolsValue) Type(ctx context.Context) attr.Type {
+	return NodepoolsType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v NodepoolsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"kubernetes_version": basetypes.StringType{},
 	}
 }
 

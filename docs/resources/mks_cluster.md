@@ -630,7 +630,7 @@ resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
 - `location` (String) The data center location where the cluster nodes will be launched
 - `oidc_configuration` (Attributes) OIDC configuration for the MKS cluster service account issuer and API audiences (see [below for nested schema](#nestedatt--spec--config--oidc_configuration))
 - `coredns_configuration` (String) Advanced CoreDNS settings in native Corefile format, for example custom server blocks to forward specific domains to upstream DNS servers.
-- `nodepools` (Map of Object) Nodepools keyed by pool name (see [below for nested schema](#nestedatt--spec--config--nodepools))
+- `nodepools` (Attributes Map) Nodepools keyed by pool name (the rafay.dev/nodepool node label). Pools not listed, or listed without kubernetes_version, are not managed by Terraform: they follow the control plane only when the control plane version changes in the same apply, and are otherwise left as they are. Set kubernetes_version to upgrade a pool explicitly. After import, the first plan adds the nodepools you declare. (see [below for nested schema](#nestedatt--spec--config--nodepools))
 
 <a id="nestedatt--spec--config--network"></a>
 ### Nested Schema for `spec.config.network`
@@ -753,7 +753,7 @@ resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
 
 **Optional**
 
-- `kubernetes_version` (String) Kubernetes version of the nodepool's nodes; omit to follow the control plane version
+- `kubernetes_version` (String) Kubernetes version for the pool's nodes. Omit to leave the pool unmanaged.
 
 <a id="nestedatt--spec--proxy"></a>
 

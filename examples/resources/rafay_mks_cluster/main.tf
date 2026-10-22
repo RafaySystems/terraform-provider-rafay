@@ -79,6 +79,11 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
           ]
         }
       }
+      # pools are named by the rafay.dev/nodepool node label; omit kubernetes_version to follow the control plane
+      nodepools = {
+        gpu     = {}
+        default = { kubernetes_version = "v1.33.5" }
+      }
     }
     system_components_placement = {
       node_selector = {

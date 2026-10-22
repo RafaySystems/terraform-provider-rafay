@@ -29,10 +29,10 @@ github.com/RafaySystems/eaas-playground/proto v0.0.0-20260609183426-5ae5d7b30a1a
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20260609183426-5ae5d7b30a1a/go.mod h1:z2QVd5ryQhfAKoiBzX3+FPct56YNRziRgi5yJy4H9Hc=
 github.com/RafaySystems/edge-common v1.24.1-0.20250109142024-dae92b291565 h1:mQSaHA5CRZKfYCemoA9RCQoYXohmLqere/Q5hTKyjZ4=
 github.com/RafaySystems/edge-common v1.24.1-0.20250109142024-dae92b291565/go.mod h1:JSPQyG9CZ8OjtcGpz21DCWuyeRECeDRTw8Xz69pa7mI=
-github.com/RafaySystems/paas-common v0.0.0-20260909102007-2f39fe949230 h1:baPdYlm9u6E26iPxgV8BeSNwbRc6hvx4Zu6qFGUWhlk=
-github.com/RafaySystems/paas-common v0.0.0-20260909102007-2f39fe949230/go.mod h1:FT9J6toXqZzzqcVjRhhlTIgElbX2WL7nu08z7RVwAv8=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260910104257-cf383f00759c h1:/FlWGfgZpM88Orezb+UUfo8DWYRCYjeRjML2ngFIVW4=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260910104257-cf383f00759c/go.mod h1:YOSNStvf7suuR9AZAQkfbArvIY8US1ml3blf0sYkMEg=
+github.com/RafaySystems/paas-common v0.0.0-20261026165217-89a46f400af1 h1:0V7PioBDRgEqVv8qDmvpakt2YK52iKLpsHaRO5kfg3I=
+github.com/RafaySystems/paas-common v0.0.0-20261026165217-89a46f400af1/go.mod h1:FT9J6toXqZzzqcVjRhhlTIgElbX2WL7nu08z7RVwAv8=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261112074823-89519b015fac h1:0BFQhPAt8vGnd4HFjhI7fUmyqPl6cSpeD6ZwQ4/1u5k=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261112074823-89519b015fac/go.mod h1:tm8vCBJbaGBtEPLKqCQF9GqkDb6NTqlPXN+PEmNQR4M=
 github.com/RafaySystems/rctl v1.29.1-0.20250821131733-b01f1efd468f h1:/mNdurvHQucG04sif4qa7Ss2tivC5ODlV5Acyob2i9k=
 github.com/RafaySystems/rctl v1.29.1-0.20250821131733-b01f1efd468f/go.mod h1:siiFJWIHlC5UzQsstYLwxV6rgdUryS6vJok/0UunF2w=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=

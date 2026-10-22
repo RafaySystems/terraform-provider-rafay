@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20250109142024-dae92b291565
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260910104257-cf383f00759c
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261112074823-89519b015fac
 	github.com/RafaySystems/rctl v1.29.1-0.20250821131733-b01f1efd468f
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -30,7 +30,7 @@ require (
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260609183426-5ae5d7b30a1a // indirect
-	github.com/RafaySystems/paas-common v0.0.0-20260909102007-2f39fe949230 // indirect
+	github.com/RafaySystems/paas-common v0.0.0-20261026165217-89a46f400af1 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

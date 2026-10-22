@@ -819,6 +819,22 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 		hub.Nodes = append(hub.Nodes, h)
 	}
 
+	if !v.Nodepools.IsNull() && !v.Nodepools.IsUnknown() {
+		var declared []poolSpec
+		for name, el := range v.Nodepools.Elements() {
+			np, ok := el.(NodepoolsValue)
+			if !ok {
+				continue
+			}
+			declared = append(declared, poolSpec{
+				Name:       name,
+				Version:    getStringValue(np.KubernetesVersion),
+				HasVersion: !np.KubernetesVersion.IsNull() && !np.KubernetesVersion.IsUnknown(),
+			})
+		}
+		hub.Nodepools = nodepoolsToHub(declared)
+	}
+
 	if !v.ClusterSsh.IsNull() && !v.ClusterSsh.IsUnknown() {
 		var sshType ClusterSshType
 		tfSshValue, d := sshType.ValueFromObject(ctx, v.ClusterSsh)
@@ -969,6 +985,45 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 
 	v.Nodes, d = types.MapValue(tfNodeType, newTfNodes)
 	diags = append(diags, d...)
+
+	// Nodepools: read the prior value before overwriting; server-only pools never surface.
+	nodepoolsElemType := NodepoolsType{
+		ObjectType: types.ObjectType{
+			AttrTypes: NodepoolsValue{}.AttributeTypes(ctx),
+		},
+	}
+	declaredSet := !v.Nodepools.IsNull() && !v.Nodepools.IsUnknown()
+	var declaredPools []poolSpec
+	if declaredSet {
+		for name, el := range v.Nodepools.Elements() {
+			np, ok := el.(NodepoolsValue)
+			if !ok {
+				continue
+			}
+			declaredPools = append(declaredPools, poolSpec{
+				Name:       name,
+				Version:    getStringValue(np.KubernetesVersion),
+				HasVersion: !np.KubernetesVersion.IsNull() && !np.KubernetesVersion.IsUnknown(),
+			})
+		}
+	}
+	outPools, keepPools := nodepoolsFromHub(declaredPools, declaredSet, hub.Nodepools, hub.KubernetesVersion)
+	if !keepPools {
+		v.Nodepools = types.MapNull(nodepoolsElemType)
+	} else {
+		tfPools := make(map[string]attr.Value, len(outPools))
+		for _, p := range outPools {
+			ver := types.StringNull()
+			if p.HasVersion {
+				ver = types.StringValue(p.Version)
+			}
+			tfPools[p.Name] = NewNodepoolsValueMust(NodepoolsValue{}.AttributeTypes(ctx), map[string]attr.Value{
+				"kubernetes_version": ver,
+			})
+		}
+		v.Nodepools, d = types.MapValue(nodepoolsElemType, tfPools)
+		diags = append(diags, d...)
+	}
 
 	if hub.Ssh != nil {
 		tfSsh, d := NewClusterSshValue(v.ClusterSsh.AttributeTypes(ctx), v.ClusterSsh.Attributes())

@@ -65,7 +65,8 @@ func TestNodepoolsFromHub(t *testing.T) {
 		{"server version same as declared (no v)", []poolSpec{{"gpu", "1.33.5", true}}, true, []*infrapb.MksNodePool{sv("gpu", "v1.33.5")}, []poolSpec{{"gpu", "1.33.5", true}}, true},
 		{"server version same as declared (major.minor)", []poolSpec{{"gpu", "v1.33", true}}, true, []*infrapb.MksNodePool{sv("gpu", "v1.33.5")}, []poolSpec{{"gpu", "v1.33", true}}, true},
 		{"server version differs from declared", []poolSpec{{"gpu", "v1.32.1", true}}, true, []*infrapb.MksNodePool{sv("gpu", "v1.33.5")}, []poolSpec{{"gpu", "v1.33.5", true}}, true},
-		{"held back", []poolSpec{{"gpu", "", false}}, true, []*infrapb.MksNodePool{sv("gpu", "v1.33.5")}, []poolSpec{{"gpu", "v1.33.5", true}}, true},
+		// declared without a version is unmanaged: stays versionless whatever the server shows
+		{"held back, declared without version", []poolSpec{{"gpu", "", false}}, true, []*infrapb.MksNodePool{sv("gpu", "v1.33.5")}, []poolSpec{{"gpu", "", false}}, true},
 		{"declared missing on server", []poolSpec{{"gpu", "", false}, {"old", "", false}}, true, []*infrapb.MksNodePool{sp("gpu")}, []poolSpec{{"gpu", "", false}}, true},
 	}
 	for _, c := range cases {

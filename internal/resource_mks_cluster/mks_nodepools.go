@@ -65,11 +65,18 @@ func nodepoolsFromHub(declared []poolSpec, declaredSet bool, server []*infrapb.M
 			continue
 		}
 		switch {
+		// A declared pool without kubernetes_version is unmanaged: whatever
+		// the server shows, keep it versionless. The server moves an omitted
+		// pool only when the control-plane version changes in the same apply,
+		// so mirroring the server version here would drift forever on a
+		// held-back pool.
+		case !d.HasVersion:
+			out = append(out, d)
 		case s.KubernetesVersion != "" && d.HasVersion && sameK8sVersion(d.Version, s.KubernetesVersion):
 			out = append(out, d)
 		case s.KubernetesVersion != "":
 			out = append(out, poolSpec{d.Name, s.KubernetesVersion, true})
-		case !d.HasVersion || sameK8sVersion(d.Version, clusterVersion):
+		case sameK8sVersion(d.Version, clusterVersion):
 			out = append(out, d)
 		default:
 			out = append(out, poolSpec{Name: d.Name})

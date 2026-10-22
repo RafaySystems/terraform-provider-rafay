@@ -12,10 +12,35 @@ import (
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 )
+
+type eksPodIdentityResourceAssociation struct {
+	Namespace              string                 `json:"namespace" yaml:"namespace"`
+	ServiceAccountName     string                 `json:"serviceAccountName" yaml:"serviceAccountName"`
+	RoleARN                string                 `json:"roleARN,omitempty" yaml:"roleARN,omitempty"`
+	CreateServiceAccount   *bool                  `json:"createServiceAccount,omitempty" yaml:"createServiceAccount,omitempty"`
+	RoleName               string                 `json:"roleName,omitempty" yaml:"roleName,omitempty"`
+	PermissionsBoundaryARN string                 `json:"permissionsBoundaryARN,omitempty" yaml:"permissionsBoundaryARN,omitempty"`
+	PermissionPolicyARNs   []string               `json:"permissionPolicyARNs,omitempty" yaml:"permissionPolicyARNs,omitempty"`
+	PermissionPolicy       map[string]interface{} `json:"permissionPolicy,omitempty" yaml:"permissionPolicy,omitempty"`
+	WellKnownPolicies      *WellKnownPolicies     `json:"wellKnownPolicies,omitempty" yaml:"wellKnownPolicies,omitempty"`
+	Tags                   map[string]string      `json:"tags,omitempty" yaml:"tags,omitempty"`
+}
+
+func eksPodIdentityResourceFields() map[string]*schema.Schema {
+	fields := podIdentityAssociationsFields()
+	fields["create_service_account"] = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Computed:    true,
+		Description: "Creates the Kubernetes service account when unset or true, and deletes a Rafay-created service account when false. An existing value is kept when the argument is removed.",
+	}
+	return fields
+}
 
 func resourceEKSPodIdentity() *schema.Resource {
 	return &schema.Resource{
@@ -32,7 +57,7 @@ func resourceEKSPodIdentity() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
-					Schema: podIdentityAssociationsFields(),
+					Schema: eksPodIdentityResourceFields(),
 				},
 				MinItems: 1,
 				MaxItems: 1,
@@ -49,6 +74,112 @@ func resourceEKSPodIdentity() *schema.Resource {
 		},
 		//		Description:   resourceEksPodIdentityDescription,
 	}
+}
+
+func expandEKSPodIdentityResource(p []interface{}, rawSpec cty.Value) []*eksPodIdentityResourceAssociation {
+	out := make([]*eksPodIdentityResourceAssociation, len(p))
+	rawItems, haveRaw := podIdentityRawSlice(rawSpec)
+	for i := range p {
+		obj := &eksPodIdentityResourceAssociation{}
+		in := p[i].(map[string]interface{})
+		obj.Namespace, _ = in["namespace"].(string)
+		obj.ServiceAccountName, _ = in["service_account_name"].(string)
+		obj.RoleARN, _ = in["role_arn"].(string)
+		// d.Get reports false for an omitted optional bool. The raw config keeps that null distinct from an explicit false.
+		if haveRaw && i < len(rawItems) {
+			if enabled, ok := configuredBool(rawItems[i], "create_service_account"); ok {
+				obj.CreateServiceAccount = &enabled
+			}
+		}
+		obj.RoleName, _ = in["role_name"].(string)
+		obj.PermissionsBoundaryARN, _ = in["permission_boundary_arn"].(string)
+		if value, ok := in["permission_policy"].(string); ok && value != "" {
+			_ = json.Unmarshal([]byte(value), &obj.PermissionPolicy)
+		}
+		if value, ok := in["permission_policy_arns"].([]interface{}); ok {
+			obj.PermissionPolicyARNs = toArrayString(value)
+		}
+		if value, ok := in["well_known_policies"].([]interface{}); ok && len(value) > 0 {
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(value)
+		}
+		if value, ok := in["tags"].(map[string]interface{}); ok {
+			obj.Tags = toMapString(value)
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+// podIdentityRawSpec returns spec only when raw config is a known object that has it.
+// Destroy passes a null config after the instance leaves configuration, and GetAttr panics on that null.
+func podIdentityRawSpec(rawConfig cty.Value) cty.Value {
+	if rawConfig.IsNull() || !rawConfig.IsKnown() || !rawConfig.Type().IsObjectType() || !rawConfig.Type().HasAttribute("spec") {
+		return cty.NullVal(cty.DynamicPseudoType)
+	}
+	return rawConfig.GetAttr("spec")
+}
+
+func podIdentityRawSlice(value cty.Value) ([]cty.Value, bool) {
+	if value.IsNull() || !value.IsKnown() {
+		return nil, false
+	}
+	valueType := value.Type()
+	if !valueType.IsListType() && !valueType.IsTupleType() && !valueType.IsSetType() {
+		return nil, false
+	}
+	return value.AsValueSlice(), true
+}
+
+func configuredBool(obj cty.Value, name string) (bool, bool) {
+	if obj.IsNull() || !obj.IsKnown() || !obj.Type().IsObjectType() || !obj.Type().HasAttribute(name) {
+		return false, false
+	}
+	attr := obj.GetAttr(name)
+	if attr.IsNull() || !attr.IsKnown() || !attr.Type().Equals(cty.Bool) {
+		return false, false
+	}
+	return attr.True(), true
+}
+
+func flattenEKSPodIdentityResource(
+	inp []*eksPodIdentityResourceAssociation,
+	previous []interface{},
+) []interface{} {
+	if inp == nil {
+		return nil
+	}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if i < len(previous) && previous[i] != nil {
+			obj = previous[i].(map[string]interface{})
+		}
+		obj["namespace"] = in.Namespace
+		obj["service_account_name"] = in.ServiceAccountName
+		obj["role_arn"] = in.RoleARN
+		obj["role_name"] = in.RoleName
+		obj["permission_boundary_arn"] = in.PermissionsBoundaryARN
+		obj["permission_policy_arns"] = toArrayInterface(in.PermissionPolicyARNs)
+		obj["tags"] = toMapInterface(in.Tags)
+		if in.PermissionPolicy != nil {
+			value, err := json.Marshal(in.PermissionPolicy)
+			if err == nil {
+				obj["permission_policy"] = string(value)
+			}
+		}
+		if in.WellKnownPolicies != nil {
+			value, ok := obj["well_known_policies"].([]interface{})
+			if !ok {
+				value = []interface{}{}
+			}
+			obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, value)
+		}
+		if in.CreateServiceAccount != nil {
+			obj["create_service_account"] = *in.CreateServiceAccount
+		}
+		out[i] = obj
+	}
+	return out
 }
 
 func metadataFields() map[string]*schema.Schema {
@@ -78,26 +209,13 @@ func resourceEksPodIdentityUpdate(ctx context.Context, d *schema.ResourceData, m
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	var podIdentity []*IAMPodIdentityAssociation
+	var podIdentity []*eksPodIdentityResourceAssociation
 	metadata := &Metadata{}
-	//rawConfig := d.GetRawConfig()
 
 	if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
-		podIdentity = expandIAMPodIdentityAssociationsConfig(v)
+		podIdentity = expandEKSPodIdentityResource(v, podIdentityRawSpec(d.GetRawConfig()))
 	} else {
 		return diag.FromErr(fmt.Errorf("spec not specified"))
-	}
-
-	if d.HasChange("spec") {
-		oldRaw, newRaw := d.GetChange("spec")
-
-		oldFlag := extractCreateServiceAccount(oldRaw)
-		newFlag := extractCreateServiceAccount(newRaw)
-
-		if oldFlag != newFlag {
-			return diag.Errorf(
-				"create_service_account is immutable. ")
-		}
 	}
 
 	if len(podIdentity) == 0 {
@@ -186,12 +304,11 @@ func resourceEksPodIdentityUpsert(ctx context.Context, d *schema.ResourceData, m
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	var podIdentity []*IAMPodIdentityAssociation
+	var podIdentity []*eksPodIdentityResourceAssociation
 	metadata := &Metadata{}
-	//rawConfig := d.GetRawConfig()
 
 	if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
-		podIdentity = expandIAMPodIdentityAssociationsConfig(v)
+		podIdentity = expandEKSPodIdentityResource(v, podIdentityRawSpec(d.GetRawConfig()))
 	} else {
 		return diag.FromErr(fmt.Errorf("spec not specified"))
 	}
@@ -277,7 +394,7 @@ LOOP:
 
 }
 
-func getPodIdentityStatus(podIdentity *IAMPodIdentityAssociation, projectId, clusterId string) (string, string, error) {
+func getPodIdentityStatus(podIdentity *eksPodIdentityResourceAssociation, projectId, clusterId string) (string, string, error) {
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity/%s/%s", projectId, clusterId, podIdentity.Namespace, podIdentity.ServiceAccountName)
@@ -359,7 +476,7 @@ func resourceEksPodIdentityRead(ctx context.Context, d *schema.ResourceData, m i
 
 	decoder := json.NewDecoder(bytes.NewReader([]byte(response)))
 
-	piaSpec := []*IAMPodIdentityAssociation{}
+	piaSpec := []*eksPodIdentityResourceAssociation{}
 
 	piaStatus := []*IAMPodIdentityAssociationOutput{}
 
@@ -380,7 +497,7 @@ func resourceEksPodIdentityRead(ctx context.Context, d *schema.ResourceData, m i
 		v = []interface{}{}
 	}
 
-	spec := flattenIAMPodIdentityAssociations(piaSpec, v)
+	spec := flattenEKSPodIdentityResource(piaSpec, v)
 	log.Printf("After flatten spec %s", spec)
 	err = d.Set("spec", spec)
 	if err != nil {
@@ -409,12 +526,10 @@ func resourceEksPodIdentityDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	podIdentity := []*IAMPodIdentityAssociation{}
-
-	//rawConfig := d.GetRawConfig()
+	podIdentity := []*eksPodIdentityResourceAssociation{}
 
 	if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
-		podIdentity = expandIAMPodIdentityAssociationsConfig(v)
+		podIdentity = expandEKSPodIdentityResource(v, podIdentityRawSpec(d.GetRawConfig()))
 	} else {
 		return diag.FromErr(fmt.Errorf("spec not specified"))
 	}
@@ -443,17 +558,6 @@ func resourceEksPodIdentityDelete(ctx context.Context, d *schema.ResourceData, m
 	log.Println("pod identity get response : ", response)
 
 	return diags
-}
-
-func extractCreateServiceAccount(raw interface{}) bool {
-	if l, ok := raw.([]interface{}); ok && len(l) > 0 && l[0] != nil {
-		if m, ok := l[0].(map[string]interface{}); ok {
-			if v, ok := m["create_service_account"].(bool); ok {
-				return v
-			}
-		}
-	}
-	return false
 }
 
 func getIdFromName(clusterName string, projectName string) (string, string, error) {

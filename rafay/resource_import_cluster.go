@@ -65,6 +65,12 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"optional_addons": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "Names of the blueprint's optional add-ons to deploy on this cluster. Add-ons marked optional on the blueprint are skipped unless listed here.",
+			},
 			"location": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -479,7 +485,19 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 			labels[k] = v.(string)
 		}
 	}
-	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg, labels, scp)
+
+	optionalAddons := optionalAddonNames(d.Get("optional_addons"))
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string),
+		d.Get("blueprint").(string),
+		d.Get("location").(string),
+		project_id,
+		d.Get("blueprint_version").(string),
+		d.Get("provision_environment").(string),
+		d.Get("kubernetes_provider").(string),
+		*proxyCfg,
+		labels,
+		scp,
+		optionalAddons)
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)
@@ -650,6 +668,11 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("optional_addons", toArrayInterface(c.OptionalAddons)); err != nil {
+		log.Printf("set optional_addons error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -681,7 +704,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	// Calling it unconditionally causes the backend to asynchronously reprocess
 	// the cluster object (which carries the old labels), clobbering any label
 	// update made by updateClusterLabels immediately after.
-	if d.HasChanges("blueprint", "blueprint_version", "proxy_config", "system_components_placement") {
+	if d.HasChanges("blueprint", "blueprint_version", "proxy_config", "system_components_placement", "optional_addons") {
 		oldClusterBlueprint := cluster_resp.ClusterBlueprint
 		if d.Get("blueprint").(string) != "" {
 			cluster_resp.ClusterBlueprint = d.Get("blueprint").(string)
@@ -694,6 +717,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		newProxyConfig := expandProxyConfigImportCluster(d.Get("proxy_config"))
 		cluster_resp.ProxyConfig = newProxyConfig
 		cluster_resp.SystemComponentsPlacement = expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
+		cluster_resp.OptionalAddons = optionalAddonNames(d.Get("optional_addons"))
 
 		err = cluster.UpdateCluster(cluster_resp, uaDef)
 		if err != nil {
@@ -701,11 +725,11 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 			return diag.FromErr(err)
 		}
 
-		if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) {
+		optionalAddons := optionalAddonNames(d.Get("optional_addons"))
+		if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) || d.HasChange("optional_addons") {
 			log.Printf("publishing cluster blueprint")
-			err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
-			if err != nil {
-				log.Printf("cluster was not updated, error %s", err.Error())
+			if err := cluster.PublishBlueprintCluster(d.Get("clustername").(string), project_id, cluster_resp.ClusterBlueprint, cluster_resp.ClusterBlueprintVersion, false, nil, optionalAddons); err != nil {
+				log.Printf("cluster blueprint was not published, error %s", err.Error())
 				return diag.FromErr(err)
 			}
 		}

@@ -158,6 +158,10 @@ func flattenClusterGKEV3Blueprint(in *infrapb.ClusterBlueprint) []interface{} {
 		obj["version"] = in.Version
 	}
 
+	if len(in.OptionalAddons) > 0 {
+		obj["optional_addons"] = toArrayInterface(in.OptionalAddons)
+	}
+
 	return []interface{}{obj}
 }
 

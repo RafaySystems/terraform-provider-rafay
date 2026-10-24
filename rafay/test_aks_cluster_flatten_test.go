@@ -304,6 +304,11 @@ func TestFlattenAKSCluster(t *testing.T) {
 								Type:     schema.TypeString,
 								Optional: true,
 							},
+							"optional_addons": {
+								Type:     schema.TypeList,
+								Optional: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+							},
 							"cloudprovider": {
 								Type:     schema.TypeString,
 								Optional: true,

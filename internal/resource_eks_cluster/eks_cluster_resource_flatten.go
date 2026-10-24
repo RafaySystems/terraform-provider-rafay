@@ -161,6 +161,25 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec, state SpecVa
 		v.BlueprintVersion = types.StringNull()
 	}
 
+	// the selection now round-trips in the v1 cluster config, so read it back from
+	// the API rather than echoing prior state - otherwise terraform can never see
+	// a selection changed outside this resource. It is a set, so a selection the
+	// API returns in another order is not reported as a diff.
+	optionalAddons := types.SetNull(types.StringType)
+	if len(in.OptionalAddons) > 0 {
+		oaElements := make([]attr.Value, 0, len(in.OptionalAddons))
+		for _, oa := range in.OptionalAddons {
+			oaElements = append(oaElements, types.StringValue(oa))
+		}
+		optionalAddons, d = types.SetValue(types.StringType, oaElements)
+		diags = append(diags, d...)
+	} else if !state.OptionalAddons.IsNull() && !state.OptionalAddons.IsUnknown() && len(state.OptionalAddons.Elements()) == 0 {
+		// the API returns no add-ons for both "unset" and "[]"; keep an empty set
+		// the config already had, otherwise every plan shows [] -> null drift
+		optionalAddons = state.OptionalAddons
+	}
+	v.OptionalAddons = optionalAddons
+
 	if in.CloudProvider != "" {
 		v.CloudProvider = types.StringValue(in.CloudProvider)
 	} else {

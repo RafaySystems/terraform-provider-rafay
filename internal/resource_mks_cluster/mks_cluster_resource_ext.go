@@ -49,6 +49,26 @@ func getInt64Value(tfInt types.Int64) int64 {
 	return tfInt.ValueInt64()
 }
 
+func getStringSet(ctx context.Context, tfSet types.Set) []string {
+	if tfSet.IsNull() || tfSet.IsUnknown() {
+		return nil
+	}
+	out := make([]string, 0, len(tfSet.Elements()))
+	tfSet.ElementsAs(ctx, &out, false)
+	return out
+}
+
+func toTfStringSet(in []string) types.Set {
+	if len(in) == 0 {
+		return types.SetNull(types.StringType)
+	}
+	elems := make([]attr.Value, 0, len(in))
+	for _, v := range in {
+		elems = append(elems, types.StringValue(v))
+	}
+	return types.SetValueMust(types.StringType, elems)
+}
+
 func convertFromTfMap(tfMap types.Map) map[string]string {
 	result := make(map[string]string)
 
@@ -1054,6 +1074,7 @@ func (v BlueprintValue) ToHub(ctx context.Context) (*infrapb.ClusterBlueprint, d
 
 	hub.Name = getStringValue(v.Name)
 	hub.Version = getStringValue(v.Version)
+	hub.OptionalAddons = getStringSet(ctx, v.OptionalAddons)
 
 	return hub, nil
 }
@@ -1061,6 +1082,13 @@ func (v BlueprintValue) ToHub(ctx context.Context) (*infrapb.ClusterBlueprint, d
 func (v BlueprintValue) FromHub(ctx context.Context, hub *infrapb.ClusterBlueprint) (basetypes.ObjectValue, diag.Diagnostics) {
 	v.Name = types.StringValue(hub.Name)
 	v.Version = types.StringValue(hub.Version)
+	// the API returns no add-ons for both "unset" and "[]"; keep an empty set the
+	// config already had, otherwise every plan shows [] -> null drift
+	keepEmpty := len(hub.OptionalAddons) == 0 && !v.OptionalAddons.IsNull() &&
+		!v.OptionalAddons.IsUnknown() && len(v.OptionalAddons.Elements()) == 0
+	if !keepEmpty {
+		v.OptionalAddons = toTfStringSet(hub.OptionalAddons)
+	}
 
 	v.state = attr.ValueStateKnown
 	return v.ToObjectValue(ctx)

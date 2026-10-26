@@ -345,6 +345,162 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 }
 ```
 
+### Example for CoreDNS Configuration
+
+Use `spec.config.coredns_configuration` to pass advanced CoreDNS settings. The value is a string in native CoreDNS [Corefile](https://coredns.io/manual/toc/#configuration) syntax: one or more server blocks, each listing the plugins to enable for that zone. This is a cluster-level setting and applies to the CoreDNS deployment running in the cluster.
+
+#### Forward a custom domain to the host resolver
+
+This adds a server block for `corp.example.com` so that queries for that domain are forwarded to the resolvers configured on the node in `/etc/resolv.conf`.
+
+```terraform
+resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
+  api_version = "infra.k8smgmt.io/v3"
+  kind        = "Cluster"
+
+  metadata = {
+    name    = "mks-cluster-coredns-example"
+    project = "terraform"
+  }
+
+  spec = {
+    blueprint = {
+      name = "minimal"
+    }
+    config = {
+      auto_approve_nodes      = true
+      dedicated_control_plane = false
+      kubernetes_version      = "v1.32.4"
+      installer_ttl           = 365
+
+      network = {
+        cni = {
+          name    = "Calico"
+          version = "3.26.1"
+        }
+        pod_subnet     = "10.244.0.0/16"
+        service_subnet = "10.96.0.0/12"
+      }
+      coredns_configuration = <<-EOF
+        corp.example.com:53 {
+            errors
+            forward . /etc/resolv.conf
+        }
+        EOF
+      cluster_ssh = {
+        username         = "ubuntu"
+        port             = "22"
+        private_key_path = "/path/to/ssh/private_key"
+      }
+      nodes = {
+        "node-1" = {
+          arch             = "amd64"
+          hostname         = "node-1"
+          operating_system = "Ubuntu24.04"
+          private_ip       = "10.0.0.85"
+          roles            = ["ControlPlane", "Worker"]
+
+          labels = {
+            environment = "example"
+          }
+          ssh = {
+            ip_address = "192.168.1.100"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Multiple server blocks with upstream DNS servers and caching
+
+Several server blocks can be given in the same string. This example forwards two internal domains to dedicated DNS servers, enables caching and logging for them, and enables Prometheus metrics for all queries.
+
+```terraform
+resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
+  api_version = "infra.k8smgmt.io/v3"
+  kind        = "Cluster"
+
+  metadata = {
+    name    = "mks-cluster-coredns-example"
+    project = "terraform"
+  }
+
+  spec = {
+    blueprint = {
+      name = "minimal"
+    }
+    config = {
+      auto_approve_nodes = true
+      kubernetes_version = "v1.32.4"
+      installer_ttl      = 365
+
+      network = {
+        cni = {
+          name    = "Calico"
+          version = "3.26.1"
+        }
+        pod_subnet     = "10.244.0.0/16"
+        service_subnet = "10.96.0.0/12"
+      }
+      coredns_configuration = <<-EOF
+        corp.example.com:53 {
+            errors
+            log
+            cache 30
+            forward . 10.0.0.53 10.0.1.53 {
+                policy round_robin
+            }
+        }
+        internal.example.net:53 {
+            errors
+            cache 60
+            forward . 192.168.10.5
+        }
+        .:53 {
+            prometheus :9153
+        }
+        EOF
+      cluster_ssh = {
+        username         = "ubuntu"
+        port             = "22"
+        private_key_path = "/path/to/ssh/private_key"
+      }
+      nodes = {
+        "node-1" = {
+          arch             = "amd64"
+          hostname         = "node-1"
+          operating_system = "Ubuntu24.04"
+          private_ip       = "10.0.0.85"
+          roles            = ["ControlPlane", "Worker"]
+          ssh = {
+            ip_address = "192.168.1.100"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Load the configuration from a Corefile
+
+The Corefile can also be kept in a separate file next to the Terraform configuration and read with the `file()` function.
+
+```terraform
+resource "rafay_mks_cluster" "mks-cluster-coredns-example" {
+  # ...
+  spec = {
+    # ...
+    config = {
+      # ...
+      coredns_configuration = file("${path.module}/Corefile")
+    }
+  }
+}
+```
+
 ### Example with OIDC Configuration
 
 ```terraform
@@ -596,6 +752,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `oidc_configuration` (Attributes) OIDC configuration for the MKS cluster service account issuer and API audiences (see [below for nested schema](#nestedatt--spec--config--oidc_configuration))
 - `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
+- `coredns_configuration` (String) Advanced CoreDNS settings in native Corefile format, for example custom server blocks to forward specific domains to upstream DNS servers.
 
 <a id="nestedatt--spec--config--network"></a>
 

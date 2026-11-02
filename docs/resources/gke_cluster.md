@@ -72,6 +72,61 @@ resource "rafay_gke_cluster" "gke-public-example" {
 }
 ```
 
+### N4 node pool with Hyperdisk Balanced
+
+```terraform
+resource "rafay_gke_cluster" "gke-n4-hyperdisk-example" {
+  metadata {
+    name    = var.cluster_name
+    project = var.rafay_project_name
+  }
+  spec {
+    type = "gke"
+    blueprint {
+      name    = "minimal"
+      version = "latest"
+    }
+    cloud_credentials = var.rafay_cloud_credential_name
+    config {
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.36"
+      location {
+        type = "zonal"
+        config {
+          zone = "us-central1-c"
+        }
+      }
+      network {
+        name                     = "default"
+        subnet_name              = "default"
+        enable_vpc_nativetraffic = "true"
+        max_pods_per_node        = 110
+        access {
+          type = "public"
+        }
+      }
+      features {
+        enable_compute_engine_persistent_disk_csi_driver = "true"
+      }
+      release_channel {
+        channel = "STABLE"
+      }
+      node_pools {
+        name         = "n4-pool"
+        node_version = "1.29"
+        size         = 3
+        machine_config {
+          machine_type   = "n4-standard-4"
+          image_type     = "COS_CONTAINERD"
+          boot_disk_type = "hyperdisk-balanced"
+          boot_disk_size = 100
+        }
+      }
+    }
+  }
+}
+```
+
 ### Private Cluster and firewall rules
 
 ```terraform
@@ -873,7 +928,7 @@ Optional:
 ***Optional***
 
 - `boot_disk_size` (Number) Select Boot disk size. Boot disk size is permanent
-- `boot_disk_type` (String) Select Boot disk type. Storage space is less expensive for a standard persistent disk. An SSD persistent disk is better for random IOPS or for streaming throughput with low latency
+- `boot_disk_type` (String) Select Boot disk type. Allowed values are pd-standard, pd-ssd, pd-balanced, and hyperdisk-balanced. Storage space is less expensive for a standard persistent disk. An SSD persistent disk is better for random IOPS or for streaming throughput with low latency
 - `image_type` (String) Choose which operating system image you want to run on each node of this cluster
 - `machine_type` (String) Choose the machine type that will best fit the resource needs of your cluster
 - `reservation_affinity` (Block List, Max: 1) Zonal compute reservation to this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--reservation_affinity))

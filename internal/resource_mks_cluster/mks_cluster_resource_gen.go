@@ -233,6 +233,11 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Description:         "MKS Cluster control plane overrides",
 								MarkdownDescription: "MKS Cluster control plane overrides",
 							},
+							"coredns_configuration": schema.StringAttribute{
+								Optional:            true,
+								Description:         "cluster coredns configuration",
+								MarkdownDescription: "cluster coredns configuration",
+							},
 							"dedicated_control_plane": schema.BoolAttribute{
 								Optional:            true,
 								Description:         "Select this option for preventing scheduling of user workloads on Control Plane nodes",
@@ -2643,6 +2648,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`control_plane_overrides expected to be basetypes.ObjectValue, was: %T`, controlPlaneOverridesAttribute))
 	}
 
+	corednsConfigurationAttribute, ok := attributes["coredns_configuration"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`coredns_configuration is missing from object`)
+
+		return nil, diags
+	}
+
+	corednsConfigurationVal, ok := corednsConfigurationAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`coredns_configuration expected to be basetypes.StringValue, was: %T`, corednsConfigurationAttribute))
+	}
+
 	dedicatedControlPlaneAttribute, ok := attributes["dedicated_control_plane"]
 
 	if !ok {
@@ -2867,6 +2890,7 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 		AutoApproveNodes:              autoApproveNodesVal,
 		ClusterSsh:                    clusterSshVal,
 		ControlPlaneOverrides:         controlPlaneOverridesVal,
+		CorednsConfiguration:          corednsConfigurationVal,
 		DedicatedControlPlane:         dedicatedControlPlaneVal,
 		HighAvailability:              highAvailabilityVal,
 		InstallerTtl:                  installerTtlVal,
@@ -3000,6 +3024,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`control_plane_overrides expected to be basetypes.ObjectValue, was: %T`, controlPlaneOverridesAttribute))
 	}
 
+	corednsConfigurationAttribute, ok := attributes["coredns_configuration"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`coredns_configuration is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	corednsConfigurationVal, ok := corednsConfigurationAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`coredns_configuration expected to be basetypes.StringValue, was: %T`, corednsConfigurationAttribute))
+	}
+
 	dedicatedControlPlaneAttribute, ok := attributes["dedicated_control_plane"]
 
 	if !ok {
@@ -3224,6 +3266,7 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 		AutoApproveNodes:              autoApproveNodesVal,
 		ClusterSsh:                    clusterSshVal,
 		ControlPlaneOverrides:         controlPlaneOverridesVal,
+		CorednsConfiguration:          corednsConfigurationVal,
 		DedicatedControlPlane:         dedicatedControlPlaneVal,
 		HighAvailability:              highAvailabilityVal,
 		InstallerTtl:                  installerTtlVal,
@@ -3311,6 +3354,7 @@ type ConfigValue struct {
 	AutoApproveNodes              basetypes.BoolValue   `tfsdk:"auto_approve_nodes"`
 	ClusterSsh                    basetypes.ObjectValue `tfsdk:"cluster_ssh"`
 	ControlPlaneOverrides         basetypes.ObjectValue `tfsdk:"control_plane_overrides"`
+	CorednsConfiguration          basetypes.StringValue `tfsdk:"coredns_configuration"`
 	DedicatedControlPlane         basetypes.BoolValue   `tfsdk:"dedicated_control_plane"`
 	HighAvailability              basetypes.BoolValue   `tfsdk:"high_availability"`
 	InstallerTtl                  basetypes.Int64Value  `tfsdk:"installer_ttl"`
@@ -3327,7 +3371,7 @@ type ConfigValue struct {
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 15)
+	attrTypes := make(map[string]tftypes.Type, 16)
 
 	var val tftypes.Value
 	var err error
@@ -3339,6 +3383,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["control_plane_overrides"] = basetypes.ObjectType{
 		AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
+	attrTypes["coredns_configuration"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["dedicated_control_plane"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["high_availability"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["installer_ttl"] = basetypes.Int64Type{}.TerraformType(ctx)
@@ -3366,7 +3411,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 15)
+		vals := make(map[string]tftypes.Value, 16)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -3391,6 +3436,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["control_plane_overrides"] = val
+
+		val, err = v.CorednsConfiguration.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["coredns_configuration"] = val
 
 		val, err = v.DedicatedControlPlane.ToTerraformValue(ctx)
 
@@ -3672,6 +3725,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"control_plane_overrides": basetypes.ObjectType{
 				AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 			},
+			"coredns_configuration":           basetypes.StringType{},
 			"dedicated_control_plane":         basetypes.BoolType{},
 			"high_availability":               basetypes.BoolType{},
 			"installer_ttl":                   basetypes.Int64Type{},
@@ -3705,6 +3759,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"control_plane_overrides": basetypes.ObjectType{
 			AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 		},
+		"coredns_configuration":           basetypes.StringType{},
 		"dedicated_control_plane":         basetypes.BoolType{},
 		"high_availability":               basetypes.BoolType{},
 		"installer_ttl":                   basetypes.Int64Type{},
@@ -3743,6 +3798,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"auto_approve_nodes":              v.AutoApproveNodes,
 			"cluster_ssh":                     clusterSsh,
 			"control_plane_overrides":         controlPlaneOverrides,
+			"coredns_configuration":           v.CorednsConfiguration,
 			"dedicated_control_plane":         v.DedicatedControlPlane,
 			"high_availability":               v.HighAvailability,
 			"installer_ttl":                   v.InstallerTtl,
@@ -3784,6 +3840,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.ControlPlaneOverrides.Equal(other.ControlPlaneOverrides) {
+		return false
+	}
+
+	if !v.CorednsConfiguration.Equal(other.CorednsConfiguration) {
 		return false
 	}
 
@@ -3855,6 +3915,7 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"control_plane_overrides": basetypes.ObjectType{
 			AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 		},
+		"coredns_configuration":           basetypes.StringType{},
 		"dedicated_control_plane":         basetypes.BoolType{},
 		"high_availability":               basetypes.BoolType{},
 		"installer_ttl":                   basetypes.Int64Type{},

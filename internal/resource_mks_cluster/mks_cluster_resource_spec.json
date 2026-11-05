@@ -351,6 +351,13 @@
 												}
 											},
 											{
+												"name": "coredns_configuration",
+												"string": {
+													"computed_optional_required": "optional",
+													"description": "cluster coredns configuration"
+												}
+											},
+											{
 												"name": "location",
 												"string": {
 													"computed_optional_required": "optional",

@@ -87,6 +87,7 @@ Read-Only:
 - `network` (Attributes) MKS Cluster Network Specification (see [below for nested schema](#nestedatt--spec--config--network))
 - `nodes` (Attributes Map) holds node configuration for the cluster (see [below for nested schema](#nestedatt--spec--config--nodes))
 - `oidc_configuration` (Attributes) OIDC configuration for the MKS cluster (see [below for nested schema](#nestedatt--spec--config--oidc_configuration))
+- `coredns_configuration` (String) Advanced CoreDNS settings in native Corefile format, for example custom server blocks to forward specific domains to upstream DNS servers.
 
 <a id="nestedatt--spec--config--cluster_ssh"></a>
 ### Nested Schema for `spec.config.cluster_ssh`

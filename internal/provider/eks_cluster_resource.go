@@ -276,6 +276,16 @@ func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	time.Sleep(10 * time.Second)
 	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
 	if errGet != nil {
+		// Apply can return a TaskSetID before the edge is created. If credential
+		// validation fails early, surface the taskset failure instead of "not found".
+		rctlConfig.ProjectID = projectID
+		if statusResp, errStatus := clusterctl.Status(logger, rctlConfig, res.TaskSetID); errStatus == nil {
+			sres := clusterCTLResponse{}
+			if json.Unmarshal([]byte(statusResp), &sres) == nil && strings.Contains(sres.Status, "STATUS_FAILED") {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("failed to create/update cluster while provisioning cluster %s %s", clusterName, statusResp))
+				return
+			}
+		}
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
 		return
 	}
@@ -752,6 +762,16 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	time.Sleep(10 * time.Second)
 	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
 	if errGet != nil {
+		if res.TaskSetID != "" {
+			rctlConfig.ProjectID = projectID
+			if statusResp, errStatus := clusterctl.Status(logger, rctlConfig, res.TaskSetID); errStatus == nil {
+				sres := clusterCTLResponse{}
+				if json.Unmarshal([]byte(statusResp), &sres) == nil && strings.Contains(sres.Status, "STATUS_FAILED") {
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("failed to create/update cluster while provisioning cluster %s %s", clusterName, statusResp))
+					return
+				}
+			}
+		}
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
 		return
 	}

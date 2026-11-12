@@ -26,6 +26,8 @@ github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
 github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261028115319-e394ac462983 h1:IhNHX8s3D5ac5GuxgEEaRUn+fHusTaw/u67W6xHjBo0=
 github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261028115319-e394ac462983/go.mod h1:yAIXTWbRf9S4rSRPPr/zOCGQOfTx9pTtANdkm674tJ0=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261029100841-345b0003ad6c h1:IMp80iLxHGy561uR5F8bKiUYwLyz7ul3K1j6+tPNjNw=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20261029100841-345b0003ad6c/go.mod h1:yAIXTWbRf9S4rSRPPr/zOCGQOfTx9pTtANdkm674tJ0=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d h1:NbCSh/ZDJj2g9jiiYxFV9hJB+qCqzCoayiVmWAnMrms=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d/go.mod h1:SZ0uCQZvcnj9N3o7dFPrt2KnS7F6RELkFV1Py7fN5Jg=
 github.com/RafaySystems/rctl v1.29.1-0.20261015084720-a13c42a04ee1 h1:GYLNuoFeFQfIRR6S5taQBxIzJX3E2dMh3U9mUfTm2xg=

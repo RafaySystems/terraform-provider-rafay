@@ -10,7 +10,9 @@ pipeline {
     stages {
         stage('Build and push to S3') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'jenkinsrafaygithub', passwordVariable: 'passWord', usernameVariable: 'userName')]) {
+                // GitHub App credential: passWord is a short-lived installation token minted per build.
+                // Installation tokens must be used with the fixed username 'x-access-token' (written to .netrc below).
+                withCredentials([usernamePassword(credentialsId: 'ops-jenkins-gh-app', passwordVariable: 'passWord', usernameVariable: 'githubAppId')]) {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'jenkinsAwsUser', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                 sh '''
                     apt-get update && apt-get install -y unzip
@@ -19,11 +21,14 @@ pipeline {
                     bash ./aws/install
                     go version
                     aws --version
-                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
                     export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-                    echo machine github.com login ${userName} password ${passWord} > ~/.netrc
-                    chmod 400 ~/.netrc
+                    # Write .netrc with xtrace off so the token never appears in the console
+                    # (Jenkins runs sh with -x, which would print the expanded command).
+                    # AWS_* are already exported by withCredentials, so no need to re-export them.
+                    { set +x; } 2>/dev/null
+                    trap 'rm -f ~/.netrc' EXIT
+                    ( umask 077; printf 'machine github.com\\nlogin x-access-token\\npassword %s\\n' "$passWord" > ~/.netrc )
+                    set -x
                     GOPROXY="https://proxy.golang.org,direct" GOPRIVATE="github.com/RafaySystems/*" go mod download
                     make release
                     make push

@@ -308,6 +308,24 @@
 												}
 											},
 											{
+												"name": "nodepools",
+												"map_nested": {
+													"computed_optional_required": "optional",
+													"nested_object": {
+														"attributes": [
+															{
+																"name": "kubernetes_version",
+																"string": {
+																	"computed_optional_required": "optional",
+																	"description": "Kubernetes version for the pool's nodes. Omit to leave the pool unmanaged."
+																}
+															}
+														]
+													},
+													"description": "Nodepools keyed by pool name; omit kubernetes_version to leave the pool unmanaged"
+												}
+											},
+											{
 												"name": "nodes",
 												"map_nested": {
 													"computed_optional_required": "required",

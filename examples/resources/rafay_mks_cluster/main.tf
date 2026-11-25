@@ -62,8 +62,9 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
           private_ip       = "10.12.114.59"
           roles            = ["Worker"]
           labels = {
-            "app"   = "infra"
-            "infra" = "true"
+            "app"                = "infra"
+            "infra"              = "true"
+            "rafay.dev/nodepool" = "gpu"
           }
           taints = [
             {
@@ -78,6 +79,11 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
             },
           ]
         }
+      }
+      # pools are named by the rafay.dev/nodepool node label; a pool without kubernetes_version is not managed by Terraform
+      # gpu = { kubernetes_version = "<cp version>" } to upgrade a held-back pool
+      nodepools = {
+        gpu = {}
       }
     }
     system_components_placement = {
